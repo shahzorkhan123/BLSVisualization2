@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Labor Market Treemap</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .control-group {
+            flex: 1;
+            margin-right: 15px;
+        }
+        .control-group:last-child {
+            margin-right: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #treemap {
+            height: 700px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Labor Market Treemap</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="region-type">Region Type:</label>
+                <select id="region-type">
+                    <option value="National">National</option>
+                    <option value="State">State</option>
+                    <option value="Metro">Metropolitan Area</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="region">Region:</label>
+                <select id="region">
+                    <option value="United States">United States</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="color-by">Color By:</label>
+                <select id="color-by">
+                    <option value="TOT_EMP">Employment</option>
+                    <option value="A_MEAN">Average Annual Wage</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="treemap"></div>
+        
+        <p class="note">Note: This visualization uses synthetic data for demonstration purposes.</p>
+    </div>
+
+    <script>
+        // Load the data
+        let allData;
+        let states = STATES_JSON;
+        let metros = METROS_JSON;
+        
+        // Initialize the visualization
+        $(document).ready(function() {
+            // Load the data
+            $.getJSON('combined_job_data.json', function(data) {
+                allData = data;
+                updateRegionDropdown();
+                updateTreemap();
+            });
+            
+            // Event listeners
+            $('#region-type').change(updateRegionDropdown);
+            $('#region').change(updateTreemap);
+            $('#color-by').change(updateTreemap);
+        });
+        
+        function updateRegionDropdown() {
+            const regionType = $('#region-type').val();
+            const regionDropdown = $('#region');
+            
+            regionDropdown.empty();
+            
+            if (regionType === 'National') {
+                regionDropdown.append($('<option>', {
+                    value: 'United States',
+                    text: 'United States'
+                }));
+            } else if (regionType === 'State') {
+                states.forEach(state => {
+                    regionDropdown.append($('<option>', {
+                        value: state,
+                        text: state
+                    }));
+                });
+            } else if (regionType === 'Metro') {
+                metros.forEach(metro => {
+                    regionDropdown.append($('<option>', {
+                        value: metro,
+                        text: metro
+                    }));
+                });
+            }
+            
+            updateTreemap();
+        }
+        
+        function updateTreemap() {
+            if (!allData) return;
+            
+            const regionType = $('#region-type').val();
+            const region = $('#region').val();
+            const colorBy = $('#color-by').val();
+            
+            // Filter data
+            const filteredData = allData.filter(d => 
+                d.Region_Type === regionType && d.Region === region
+            );
+            
+            // Group data by major group
+            const groupedData = {};
+            filteredData.forEach(d => {
+                if (!groupedData[d.SOC_Major_Group_Name]) {
+                    groupedData[d.SOC_Major_Group_Name] = {
+                        name: d.SOC_Major_Group_Name,
+                        children: [],
+                        value: 0
+                    };
+                }
+                
+                groupedData[d.SOC_Major_Group_Name].children.push({
+                    name: d.OCC_TITLE,
+                    value: d.TOT_EMP,
+                    colorValue: d[colorBy]
+                });
+                
+                groupedData[d.SOC_Major_Group_Name].value += d.TOT_EMP;
+            });
+            
+            // Convert to array for treemap
+            const treemapData = Object.values(groupedData);
+            
+            // Create treemap
+            const data = [{
+                type: 'treemap',
+                labels: treemapData.map(d => d.name),
+                parents: treemapData.map(() => ''),
+                values: treemapData.map(d => d.value),
+                branchvalues: 'total',
+                hovertemplate: '<b>%{label}</b><br>Employment: %{value}<br><extra></extra>',
+                marker: {
+                    colors: treemapData.map(d => d.value),
+                    colorscale: 'Viridis'
+                }
+            }];
+            
+            // Add children
+            treemapData.forEach(group => {
+                data[0].labels = data[0].labels.concat(group.children.map(c => c.name));
+                data[0].parents = data[0].parents.concat(group.children.map(() => group.name));
+                data[0].values = data[0].values.concat(group.children.map(c => c.value));
+                
+                // Use the selected color metric
+                const colorValues = group.children.map(c => c.colorValue);
+                data[0].marker.colors = data[0].marker.colors.concat(colorValues);
+            });
+            
+            const layout = {
+                margin: {l: 0, r: 0, b: 0, t: 30},
+                title: `${region} Labor Market by Occupational Groups`,
+            };
+            
+            Plotly.newPlot('treemap', data, layout);
+        }
+    </script>
+    
+    <script>
+        // Replace these with the actual JSON data
+        const STATES_JSON = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
+        const METROS_JSON = ["New York-Newark-Jersey City, NY-NJ-PA", "Los Angeles-Long Beach-Anaheim, CA", "Chicago-Naperville-Elgin, IL-IN-WI", "Dallas-Fort Worth-Arlington, TX", "Houston-The Woodlands-Sugar Land, TX", "Washington-Arlington-Alexandria, DC-VA-MD-WV", "Miami-Fort Lauderdale-West Palm Beach, FL", "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD", "Atlanta-Sandy Springs-Roswell, GA", "Boston-Cambridge-Newton, MA-NH", "San Francisco-Oakland-Hayward, CA", "Phoenix-Mesa-Scottsdale, AZ", "Riverside-San Bernardino-Ontario, CA", "Detroit-Warren-Dearborn, MI", "Seattle-Tacoma-Bellevue, WA"];
+    </script>
+</body>
+</html>

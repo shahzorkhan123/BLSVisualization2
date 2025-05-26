@@ -1,0 +1,10 @@
+occupation_code,occupation_title,employment,mean_annual_wage,complexity_score
+OC1,Managers,4823,43588,0.7337340510130806
+OC2,Professionals,6744,43213,0.37863145449251895
+OC3,Technicians and Associates,3382,47620,0.5327375818663128
+OC4,Clerical Support,4439,40026,0.4405049615412429
+OC5,Service and Sales,2249,72777,0.5071405787167109
+OC6,Agricultural Workers,6013,22515,0.6501321621150159
+OC7,Craft and Trades,9235,56082,0.3701043049693102
+OC8,Machine Operators,2628,51926,0.7067341310540873
+OC9,Elementary Occupations,16150,51116,0.7845334053184386
