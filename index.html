@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job and Task Complexity Atlas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            padding-top: 56px;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 1.5rem;
+            height: 100%;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        .section-title {
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background-color: #0d6efd;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        footer {
+            background-color: #f8f9fa;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #0d6efd;
+            margin-bottom: 1rem;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">Job & Task Complexity Atlas</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#visualizations">Visualizations</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#methodology">Methodology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#data">Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Job and Task Complexity Atlas</h1>
+            <p class="lead">Exploring the structure and complexity of labor markets through interactive visualizations</p>
+            <a href="#visualizations" class="btn btn-light btn-lg mt-3">Explore Visualizations</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="container my-5">
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <div class="feature-icon">📊</div>
+                <h3>Job Complexity</h3>
+                <p>Explore how different occupations compare in terms of complexity, based on skill requirements, task importance, and wage distributions.</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="feature-icon">🌐</div>
+                <h3>Geographic Analysis</h3>
+                <p>Compare job complexity and pricing across states and metropolitan areas to understand regional labor market differences.</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <div class="feature-icon">🔍</div>
+                <h3>Occupational Structure</h3>
+                <p>Visualize relationships between occupations and identify patterns in the labor market structure.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visualizations Section -->
+    <section class="container my-5" id="visualizations">
+        <h2 class="section-title">Interactive Visualizations</h2>
+        
+        <ul class="nav nav-pills mb-4" id="visualizationTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="treemap-tab" data-bs-toggle="pill" data-bs-target="#treemap" type="button" role="tab" aria-controls="treemap" aria-selected="true">Job Complexity Treemap</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="price-tab" data-bs-toggle="pill" data-bs-target="#price" type="button" role="tab" aria-controls="price" aria-selected="false">Job Price Treemap</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="jobspace-tab" data-bs-toggle="pill" data-bs-target="#jobspace" type="button" role="tab" aria-controls="jobspace" aria-selected="false">Job Space</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="state-tab" data-bs-toggle="pill" data-bs-target="#state" type="button" role="tab" aria-controls="state" aria-selected="false">State Analysis</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="scatter-tab" data-bs-toggle="pill" data-bs-target="#scatter" type="button" role="tab" aria-controls="scatter" aria-selected="false">Complexity vs. Price</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="top-tab" data-bs-toggle="pill" data-bs-target="#top" type="button" role="tab" aria-controls="top" aria-selected="false">Top Occupations</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="visualizationTabsContent">
+            <div class="tab-pane fade show active" id="treemap" role="tabpanel" aria-labelledby="treemap-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Complexity Treemap</h5>
+                                <p class="card-text">This treemap visualization shows occupations organized by category and major group, with size representing employment and color representing job complexity index.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/job_complexity_treemap_fixed.html" title="Job Complexity Treemap"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="price" role="tabpanel" aria-labelledby="price-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Price Treemap</h5>
+                                <p class="card-text">This treemap visualization shows occupations organized by category and major group, with size representing employment and color representing job price index.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/job_price_treemap_fixed.html" title="Job Price Treemap"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="jobspace" role="tabpanel" aria-labelledby="jobspace-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Space Network</h5>
+                                <p class="card-text">This network visualization shows how different occupations are connected based on skill similarity, similar to the Product Space in the Harvard Atlas of Economic Complexity. Occupations that require similar skills are positioned closer together, with node size representing employment and color representing complexity.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/job_space_simplified.html" title="Job Space Network"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Complete Job Space Network</h5>
+                                <p class="card-text">This is the full job space network with all occupations. Occupations are connected when they share similar skill requirements, revealing the underlying structure of the labor market.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/job_space_network.html" title="Complete Job Space Network"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="state" role="tabpanel" aria-labelledby="state-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Complexity by State</h5>
+                                <p class="card-text">This map shows the average job complexity index across all occupations for each state.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/state_job_complexity_map.html" title="Job Complexity by State"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Price Index by State</h5>
+                                <p class="card-text">This map shows the average job price index across all occupations for each state.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/state_job_price_map.html" title="Job Price Index by State"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="scatter" role="tabpanel" aria-labelledby="scatter-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Job Complexity vs. Job Price</h5>
+                                <p class="card-text">This scatter plot shows the relationship between job complexity index and job price index for all occupations, with point size representing employment.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/job_complexity_vs_price_scatter.html" title="Job Complexity vs. Job Price"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="top" role="tabpanel" aria-labelledby="top-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Top 100 Occupations by Employment</h5>
+                                <p class="card-text">This treemap shows the 100 largest occupations by employment, colored by job complexity index.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/top_jobs_complexity_treemap.html" title="Top 100 Occupations by Employment"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Top 50 Occupations Bubble Chart</h5>
+                                <p class="card-text">This bubble chart shows the top 50 occupations by employment, with complexity on the x-axis and price on the y-axis.</p>
+                                <div class="iframe-container">
+                                    <iframe src="visualizations/top50_jobs_bubble_chart.html" title="Top 50 Occupations Bubble Chart"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Methodology Section -->
+    <section class="container my-5" id="methodology">
+        <h2 class="section-title">Methodology</h2>
+        <div class="row">
+            <div class="col-lg-8">
+                <h4>Job Complexity Index</h4>
+                <p>The Job Complexity Index measures the complexity of occupations based on three key factors:</p>
+                <ol>
+                    <li><strong>Wage Range:</strong> The difference between the 90th and 10th percentile wages for each occupation, indicating the range of skill levels and specialization within the occupation.</li>
+                    <li><strong>Skill Level:</strong> The average skill level required for the occupation, derived from O*NET data on the skills needed to perform the job.</li>
+                    <li><strong>Task Importance:</strong> The average importance of tasks performed in the occupation, also derived from O*NET data.</li>
+                </ol>
+                <p>The formula for the Job Complexity Index is:</p>
+                <div class="bg-light p-3 mb-4">
+                    <code>Job Complexity Index = (Wage Range × Avg Skill Level × Avg Task Importance) / Median(Wage Range × Avg Skill Level × Avg Task Importance)</code>
+                </div>
+                <p>This index is normalized so that the median occupation has a complexity index of 1.0.</p>
+                
+                <h4>Job Price Index</h4>
+                <p>The Job Price Index measures the relative price (wage) of occupations:</p>
+                <div class="bg-light p-3 mb-4">
+                    <code>Job Price Index = Annual Mean Wage / Median(Annual Mean Wage)</code>
+                </div>
+                <p>This index is also normalized so that the median occupation has a price index of 1.0.</p>
+                
+                <h4>Task Complexity Index</h4>
+                <p>The Task Complexity Index focuses specifically on the complexity of tasks performed in each occupation:</p>
+                <div class="bg-light p-3 mb-4">
+                    <code>Task Complexity Index = (Avg Skill Level × Avg Task Importance) / Median(Avg Skill Level × Avg Task Importance)</code>
+                </div>
+                <p>This index isolates the task and skill components of complexity, separate from wage considerations.</p>
+                
+                <h4>Job Space Network</h4>
+                <p>The Job Space Network visualizes the relationships between different occupations based on skill similarity:</p>
+                <ol>
+                    <li><strong>Node Creation:</strong> Each occupation is represented as a node, with size based on employment and color based on complexity.</li>
+                    <li><strong>Edge Creation:</strong> Occupations are connected by edges when they share similar skill requirements, based on cosine similarity of skill vectors from O*NET data.</li>
+                    <li><strong>Network Layout:</strong> A force-directed layout algorithm positions occupations with similar skills closer together, revealing clusters of related jobs.</li>
+                </ol>
+                <p>This approach is analogous to the Product Space methodology in the Harvard Atlas of Economic Complexity, which connects products based on co-export patterns.</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Data Sources</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Bureau of Labor Statistics (BLS) Occupational Employment and Wage Statistics</li>
+                            <li class="list-group-item">O*NET Database (tasks, skills, and abilities)</li>
+                            <li class="list-group-item">Standard Occupational Classification (SOC) system</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Limitations</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Complexity measures are relative within the dataset</li>
+                            <li class="list-group-item">Some occupations may have limited data availability</li>
+                            <li class="list-group-item">Regional variations may affect wage-based metrics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Section -->
+    <section class="container my-5" id="data">
+        <h2 class="section-title">Data</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Download Data</h5>
+                        <p class="card-text">All data used in these visualizations is available for download in various formats.</p>
+                        <div class="list-group">
+                            <a href="data/processed/complexity/job_complexity.csv" class="list-group-item list-group-item-action">Job Complexity Data (CSV)</a>
+                            <a href="data/processed/complexity/task_complexity.csv" class="list-group-item list-group-item-action">Task Complexity Data (CSV)</a>
+                            <a href="data/processed/complexity/state_complexity_metrics.csv" class="list-group-item list-group-item-action">State-Level Metrics (CSV)</a>
+                            <a href="data/processed/complexity/job_task_complexity_data.xlsx" class="list-group-item list-group-item-action">Complete Dataset (Excel)</a>
+                            <a href="visualizations/job_complexity_data.json" class="list-group-item list-group-item-action">Visualization Data (JSON)</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Data Processing</h5>
+                        <p class="card-text">The data processing workflow includes:</p>
+                        <ol>
+                            <li>Extraction of BLS national and state-level occupational employment and wage data</li>
+                            <li>Integration with O*NET task and skill data</li>
+                            <li>Calculation of complexity and price indexes</li>
+                            <li>Aggregation at various geographic and occupational levels</li>
+                            <li>Generation of interactive visualizations</li>
+                        </ol>
+                        <p>All data processing code is available on GitHub.</p>
+                        <a href="#" class="btn btn-primary">View on GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="container my-5" id="about">
+        <h2 class="section-title">About the Project</h2>
+        <div class="row">
+            <div class="col-lg-8">
+                <p>The Job and Task Complexity Atlas is a research project that applies economic complexity principles to labor markets. Inspired by the Harvard Atlas of Economic Complexity, this project aims to understand the structure of labor markets through the lens of job and task complexity.</p>
+                <p>The project builds on existing research in labor economics, particularly the "tasks framework" that views jobs as bundles of tasks requiring different skills and abilities. By measuring the complexity of these task bundles and their relationship to wages and employment, we can gain insights into labor market dynamics, skill premiums, and potential paths for workforce development.</p>
+                <p>This interactive atlas allows researchers, policymakers, and the public to explore these relationships through visualizations that highlight patterns in occupational structure, geographic variations, and the relationship between complexity and wages.</p>
+                <h4>Research Applications</h4>
+                <ul>
+                    <li>Understanding wage inequality and skill premiums</li>
+                    <li>Identifying potential career pathways and skill development opportunities</li>
+                    <li>Analyzing regional labor market specialization and diversity</li>
+                    <li>Forecasting potential impacts of technological change and automation</li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">References</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Harvard Growth Lab's Atlas of Economic Complexity</li>
+                            <li class="list-group-item">Autor, D. H., Levy, F., & Murnane, R. J. (2003). The skill content of recent technological change: An empirical exploration.</li>
+                            <li class="list-group-item">Acemoglu, D., & Autor, D. (2011). Skills, tasks and technologies: Implications for employment and earnings.</li>
+                            <li class="list-group-item">Hidalgo, C. A., & Hausmann, R. (2009). The building blocks of economic complexity.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Contact</h5>
+                        <p>For questions, feedback, or collaboration opportunities, please contact:</p>
+                        <p><a href="mailto:research@jobcomplexityatlas.org">research@jobcomplexityatlas.org</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Job and Task Complexity Atlas</h5>
+                    <p>Exploring the structure and complexity of labor markets through interactive visualizations.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#visualizations">Visualizations</a></li>
+                        <li><a href="#methodology">Methodology</a></li>
+                        <li><a href="#data">Data</a></li>
+                        <li><a href="#about">About</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Related Resources</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="https://atlas.hks.harvard.edu/" target="_blank">Harvard Atlas of Economic Complexity</a></li>
+                        <li><a href="https://www.bls.gov/oes/" target="_blank">BLS Occupational Employment Statistics</a></li>
+                        <li><a href="https://www.onetonline.org/" target="_blank">O*NET Online</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2025 Job and Task Complexity Atlas. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
