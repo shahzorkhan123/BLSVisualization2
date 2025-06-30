@@ -22,26 +22,19 @@ The Ricardo-Roy model provides a foundation for understanding how tasks are allo
 
 The Cobb-Douglas Labor Aggregate is represented as:
 
-$$
-Y = B \times L^{I_L} M^{I_H - I_L} H^{I - I_H}
-$$
-Where B (aka TFP) is given by 
-$$
-B = \exp\left(\int_{0}^{I_L} \ln A_l \, \alpha(i) \, di + \int_{I_L}^{I_H} \ln A_m \, \alpha(i) \, di + \int_{I_H}^{I} \ln A_h \, \alpha(i) \, di\right)
-$$
+Y = B × L^(I_L) M^(I_H-I_L) H^(I-I_H)
 
-![alt text](paper/image.png)
-### 2.2 Acemoglu-Restrepo Model: Capital Replacement vs Technology Replacement 
+Where B (Total Factor Productivity) is given by:
+
+B = exp(∫(0 to I_L) ln A_l α(i)di + ∫(I_L to I_H) ln A_m α(i)di + ∫(I_H to I) ln A_h α(i)di)
 
 This model provides insights into how technological change affects different skill levels, but is limited by its focus on broad skill categories rather than individual skills.
 
-$$
-Y(L, K) = \left[ \left( \int_{N-1}^{I} \gamma^K(z)^{\sigma-1} dz \right)^{1/\sigma} (A^K K)^{(\sigma-1)/\sigma} + \left( \int_{I}^{N} \gamma^L(z)^{\sigma-1} dz \right)^{1/\sigma} (A^L L)^{(\sigma-1)/\sigma} \right]^{\sigma/(\sigma-1)}
-$$
-
-![alt text](paper/image-1.png)
+### 2.2 Acemoglu-Restrepo Model: Capital Replacement vs. Technology Replacement
 
 The Acemoglu-Restrepo model extends the analysis to consider the allocation of tasks between capital and labor. Using the elasticity of substitution (σ) between capital and labor, the model examines how technological change affects productivity and task allocation. The aggregate production function is given by:
+
+Y(L,K) = ((∫(N-1 to I) γ^K(z)^(σ-1) dz)^(1/σ) (A^K K)^((σ-1)/σ) + (∫(I to N) γ^L(z)^(σ-1) dz)^(1/σ) (A^L L)^((σ-1)/σ))^(σ/(σ-1))
 
 The model identifies four key forces at play in technological change:
 1. Automation at the extensive margin (displacement)
@@ -49,10 +42,7 @@ The model identifies four key forces at play in technological change:
 3. Labor-augmenting technological advances
 4. Creation of new tasks
 
-This framework provides valuable insights into how technology affects labor markets, but assumes a constant elasticity of substitution and doesn't fully account for institutional factors. The authors evaluate impact of technology on labor augmentation, (Blue), Capital Augmentation 
-(Red), displacement (Green), Creation of new tasks. (Acemogulu, 2018)
-
-![alt text](paper/image-2.png)
+This framework provides valuable insights into how technology affects labor markets, but assumes a constant elasticity of substitution and doesn't fully account for institutional factors.
 
 ### 2.3 Economic Complexity Framework
 
@@ -74,119 +64,72 @@ This approach has been applied to various contexts, including international expo
 
 ### 3.1 Job and Task Complexity Index
 
-Expanding the Ricardo Roy Model to Individual Skills instead of Skill Levels (See 
-Illustration), which translate to productivity in completing a task. Considering average skill 
-composition of a job to be the worker’s average skill composition and intensity. 
+Our integrated model extends the Ricardo-Roy framework to individual skills rather than broad skill levels. We consider the average skill composition of a job to be the worker's average skill composition and intensity, which translates to productivity in completing tasks.
 
-![alt text](paper/image-3.png)
+Assumption 1: In a perfectly competitive labor market (where wage equals value add), a worker in Job J_j is paid a wage ω_j for completing a set of tasks τ_(I_(j-1))..τ_(I_j).
 
-#### Assumption 1: Lets assume a perfectly competitive labor market (Wage is equal to value add) where a worker in Job $𝐽_𝑗$ is paid a wage $𝜔_𝑗$ for completing a set of tasks $𝜏_{𝑗−1}$ .. $𝜏_𝑗$
- 
-Let 𝜏𝑖 represent the value add by single unit of task, and 𝑁𝑗𝑖 represent number of unit of 
-task performed in Job 𝐽𝑗. Then Wage is given by
+Let τ_i represent the value add by a single unit of task, and N_ji represent the number of units of task performed in Job J_j. Then the wage is given by:
 
+ω_j = ∑_i τ_i N_ji
 
-$$
-\omega_j = \sum_i \tau_i N_{ji}
-$$
+Let the worker take time l_ji to complete N_ji, and normalize l_ji such that:
 
-Let the worker take time $l_{ji}$ to complete $N_{ji}$, and normalize $l_{ji}$ such that:
+∑_i l_ji = 1 for all j
 
-$$
-\sum_i l_{ji} = 1 \quad \text{for all } j
-$$
+We define productivity A_ji as the number of task units completed per unit of time:
 
-We define productivity $A_{ji}$ as the number of task units completed per unit of time:
-
-$$
-A_{ji} = \frac{N_{ji}}{l_{ji}}
-$$
-
-Without loss of generalization, let $𝜏_𝑖 = 1 ∀𝑖, 𝑁_{𝑗𝑖}$ represents the value added by Task i in Job j, 
-
-$$
-\omega_𝑗 = \sum_i 𝑁_{𝑗𝑖} = \sum_i 𝑙_{𝑗𝑖} × 𝐴_{𝑗𝑖} 
-$$
-
-**Revealed Comparative Advantage:** If a worker in Job $j$ is working on multiple tasks, the worker will choose tasks that provide maximum wage. On average, workers will choose tasks in which they are most productive. For a given worker in Job $J_1$ looking at tasks $t_1$ and $t_2$, the worker will choose task $t_1$ if $A_{j, t_1} > A_{j, t_2}$.
-
-#### Assumption 2: In a perfectly competitive labor market, assuming every worker works as productively as possible across multiple tasks, the productivity of a worker in job $j$ will be equal for all tasks the worker is performing.
-
-$$
-\implies A_{ji} = A_{jk} = A_j    ∀ j
-$$
-
-$$
-\omega_j = \sum_i N_{ji} = \sum_i l_{ji} \times A_{ji}
-$$
-
-$$
 A_ji = N_ji/l_ji
-$$
 
+Without loss of generalization, let τ_i = 1 for all i. Then N_ji represents the value added by Task i in Job j:
+
+ω_j = ∑_i N_ji = ∑_i l_ji × A_ji
 
 Revealed Comparative Advantage: If a worker in Job j is working on multiple tasks, the worker will choose tasks that provide maximum wage. On average, workers will choose tasks in which they are most productive. For a given worker in Job J1 looking at tasks t1 and t2, the worker will choose task t1 if A_(j,t1) > A_(j,t2).
-$$
-C_j = \frac{1}{k_j} \sum_i M_{ji} C_i
-$$
-$$
-C_i = \frac{1}{k_i} \sum_j M_{ji} C_j
-$$
 
-Where:
-- $C_j$ is the complexity of job $j$
-- $C_i$ is the complexity of task $i$
-- $M_{ji}$ is the binary matrix indicating whether job $j$ performs task $i$
-- $k_j$ is the diversity of job $j$ (number of tasks)
-- $k_i$ is the ubiquity of task $i$ (number of jobs performing it)
+Assumption 2: In a perfectly competitive labor market, assuming every worker works as productively as possible across multiple tasks, the productivity of a worker in job j will be equal for all tasks the worker is performing.
+
+### 3.2 Complexity Metrics and Dimensionality Reduction
+
+To address the challenge of hidden variables (skills and skill intensity), we apply economic complexity methods for dimensionality reduction. We use the observed patterns of jobs and tasks to infer the underlying complexity of both.
+
+For jobs, we define complexity based on the diversity and ubiquity of the tasks performed:
+
 1. Diversity: The number of different tasks performed in a job
 2. Ubiquity: How common each task is across different jobs
 
 We then use an iterative method to refine these measures, accounting for the complexity of the tasks themselves:
 
-$$
-\mathrm{RCA}_{lo} = \frac{E_{lo}/\sum_o E_{lo}}{\sum_l E_{lo}/\sum_l \sum_o E_{lo}}
-$$
+C_j = (1/k_j) ∑_i M_ji C_i
+C_i = (1/k_i) ∑_j M_ji C_j
 
-Where $E_{lo}$ is the employment in location $l$ and occupation $o$.
+Where:
+- C_j is the complexity of job j
+- C_i is the complexity of task i
+- M_ji is the binary matrix indicating whether job j performs task i
+- k_j is the diversity of job j (number of tasks)
+- k_i is the ubiquity of task i (number of jobs performing it)
 
-We then use the patterns of co-occurrence across locations and occupations to infer the implied comparative advantage:
+This approach allows us to capture the hidden information about skills and capabilities that is embedded in the observed patterns of jobs and tasks.
 
-$$
-\mathrm{ICA}_{lo} = \sum_{o'} \varphi_{oo'} \mathrm{RCA}_{lo'}
-$$
-
-Where $\varphi_{oo'}$ is a measure of relatedness between occupations $o$ and $o'$.
-
-The deviation between observed and implied comparative advantage can then be used to predict future growth:
-
-$$
-\mathrm{Growth}_{lo} = \beta (\mathrm{ICA}_{lo} - \mathrm{RCA}_{lo}) + \text{controls} + \varepsilon_{lo}
-$$
+### 3.3 Implied Comparative Advantage in Labor Markets
 
 Building on the concept of implied comparative advantage, we develop a measure for labor markets that captures the potential for growth or specialization in different occupations.
 
 We define the Revealed Comparative Advantage (RCA) of a location l in occupation o as:
 
-$$
 RCA_lo = (E_lo/∑_o E_lo)/(∑_l E_lo/∑_l∑_o E_lo)
-$$
 
 Where E_lo is the employment in location l and occupation o.
 
 We then use the patterns of co-occurrence across locations and occupations to infer the implied comparative advantage:
 
-$$
 ICA_lo = ∑_o' φ_oo' RCA_lo'
-$$
 
 Where φ_oo' is a measure of relatedness between occupations o and o'.
 
 The deviation between observed and implied comparative advantage can then be used to predict future growth:
 
-$$
 Growth_lo = β(ICA_lo - RCA_lo) + controls + ε_lo
-$$
 
 This framework allows us to identify potential areas for growth or specialization based on the existing pattern of comparative advantages.
 

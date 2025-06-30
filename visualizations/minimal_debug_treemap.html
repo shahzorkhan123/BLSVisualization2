@@ -1,0 +1,75 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Minimal Test with Explicit Job Titles</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+    <body>
+        <h1>Minimal Test with Explicit Job Titles</h1>
+        <div id="treemap" style="width:100%;height:800px;"></div>
+        <script>
+            // Create a minimal dataset with explicit job titles
+            var data = [{
+                type: "treemap",
+                ids: [
+                    "root", 
+                    "management", "healthcare", "technology",
+                    "ceo", "cfo", "nurse", "doctor", "developer", "analyst"
+                ],
+                labels: [
+                    "All Jobs", 
+                    "Management", "Healthcare", "Technology",
+                    "Chief Executive Officer", "Chief Financial Officer", "Registered Nurse", "Physician", "Software Developer", "Systems Analyst"
+                ],
+                parents: [
+                    "", 
+                    "root", "root", "root",
+                    "management", "management", "healthcare", "healthcare", "technology", "technology"
+                ],
+                values: [1000, 300, 400, 300, 150, 150, 200, 200, 150, 150],
+                branchvalues: "total",
+                marker: {
+                    colors: [1, 1.5, 1.2, 1.8, 1.9, 1.7, 1.3, 1.8, 2.0, 1.6],
+                    colorscale: "RdBu",
+                    cmid: 1.5,
+                    colorbar: {
+                        title: "Job Complexity Index",
+                        thickness: 20,
+                        len: 0.7
+                    }
+                },
+                hovertemplate: '<b>%{label}</b><br>Value: %{value}<br>Complexity: %{color:.2f}<extra></extra>',
+                texttemplate: '<b>%{label}</b>'
+            }];
+
+            var layout = {
+                title: 'Minimal Test with Explicit Job Titles',
+                margin: {t:50, l:25, r:25, b:25},
+                height: 800
+            };
+            
+            // Debug output to console
+            console.log("IDs array:", data[0].ids);
+            console.log("Labels array:", data[0].labels);
+            console.log("Parents array:", data[0].parents);
+
+            Plotly.newPlot('treemap', data, layout);
+        </script>
+        
+        <h2>Debug Information</h2>
+        <div id="debug-info" style="margin-top: 20px; padding: 10px; background-color: #f5f5f5; border: 1px solid #ddd;">
+            <h3>Data Arrays</h3>
+            <pre id="data-arrays"></pre>
+            
+            <script>
+                // Display the arrays for debugging
+                document.getElementById('data-arrays').textContent = 
+                    'IDs: ' + JSON.stringify(data[0].ids, null, 2) + '\n\n' +
+                    'Labels: ' + JSON.stringify(data[0].labels, null, 2) + '\n\n' +
+                    'Parents: ' + JSON.stringify(data[0].parents, null, 2);
+            </script>
+        </div>
+    </body>
+    </html>
+    
