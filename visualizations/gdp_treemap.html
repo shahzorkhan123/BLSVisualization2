@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GDP Labor Market Treemap</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        #treemap {
+            height: 700px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+        .info-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Labor Market GDP Treemap</h1>
+        
+        <div class="info-panel">
+            <strong>GDP Calculation:</strong> GDP = Number of Employees × Average Annual Wage
+            <br>
+            <strong>Data:</strong> Bureau of Labor Statistics occupational employment and wage data
+        </div>
+        
+        <div id="treemap"></div>
+        
+        <p class="note">
+            GDP values represent the total economic output of each occupation 
+            (calculated as employment multiplied by average annual wage).
+            Size indicates GDP contribution, color represents wage levels.
+        </p>
+    </div>
+
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedYear = urlParams.get('year') || '2024';
+        const selectedState = urlParams.get('state') || 'National';
+        const selectedVocationLimit = urlParams.get('vocationLimit') || 'all';
+        
+        // Sample GDP data structure (this would be loaded from actual data files)
+        const sampleGDPData = [
+            {
+                occupation: "Software Developers",
+                major_group: "Computer and Mathematical",
+                employment: 1847900,
+                avg_wage: 110140,
+                gdp: 1847900 * 110140,
+                complexity: 0.85
+            },
+            {
+                occupation: "Registered Nurses",
+                major_group: "Healthcare Practitioners",
+                employment: 3175390,
+                avg_wage: 80010,
+                gdp: 3175390 * 80010,
+                complexity: 0.72
+            },
+            {
+                occupation: "Teachers, Elementary School",
+                major_group: "Education, Training, and Library",
+                employment: 1424890,
+                avg_wage: 60940,
+                gdp: 1424890 * 60940,
+                complexity: 0.68
+            },
+            {
+                occupation: "Retail Salespersons",
+                major_group: "Sales and Related",
+                employment: 4155020,
+                avg_wage: 27080,
+                gdp: 4155020 * 27080,
+                complexity: 0.42
+            },
+            {
+                occupation: "Cashiers",
+                major_group: "Sales and Related",
+                employment: 3333010,
+                avg_wage: 24040,
+                gdp: 3333010 * 24040,
+                complexity: 0.38
+            },
+            {
+                occupation: "General and Operations Managers",
+                major_group: "Management",
+                employment: 2289770,
+                avg_wage: 115250,
+                gdp: 2289770 * 115250,
+                complexity: 0.78
+            },
+            {
+                occupation: "Food Preparation Workers",
+                major_group: "Food Preparation and Serving",
+                employment: 876770,
+                avg_wage: 25410,
+                gdp: 876770 * 25410,
+                complexity: 0.32
+            },
+            {
+                occupation: "Truck Drivers, Heavy",
+                major_group: "Transportation",
+                employment: 2063770,
+                avg_wage: 47130,
+                gdp: 2063770 * 47130,
+                complexity: 0.45
+            }
+        ];
+        
+        // Process data based on selections
+        function processData() {
+            let processedData = [...sampleGDPData];
+            
+            // Apply vocation limit
+            if (selectedVocationLimit === 'top50') {
+                processedData = processedData
+                    .sort((a, b) => b.gdp - a.gdp)
+                    .slice(0, Math.min(50, processedData.length));
+            }
+            
+            // Group by major group
+            const groupedData = {};
+            processedData.forEach(d => {
+                if (!groupedData[d.major_group]) {
+                    groupedData[d.major_group] = {
+                        name: d.major_group,
+                        children: [],
+                        totalGDP: 0,
+                        totalEmployment: 0,
+                        avgWage: 0
+                    };
+                }
+                
+                groupedData[d.major_group].children.push(d);
+                groupedData[d.major_group].totalGDP += d.gdp;
+                groupedData[d.major_group].totalEmployment += d.employment;
+            });
+            
+            // Calculate average wage for each group
+            Object.values(groupedData).forEach(group => {
+                group.avgWage = group.totalEmployment > 0 ? 
+                    group.totalGDP / group.totalEmployment : 0;
+            });
+            
+            return Object.values(groupedData);
+        }
+        
+        // Create treemap visualization
+        function createTreemap() {
+            const processedData = processData();
+            
+            // Prepare treemap data
+            const labels = [];
+            const parents = [];
+            const values = [];
+            const colors = [];
+            const customdata = [];
+            const hovertemplate = [];
+            
+            // Add major groups
+            processedData.forEach(group => {
+                labels.push(group.name);
+                parents.push("");
+                values.push(group.totalGDP);
+                colors.push(group.avgWage);
+                customdata.push([group.totalEmployment, group.avgWage]);
+                hovertemplate.push(
+                    `<b>%{label}</b><br>` +
+                    `Total GDP: $%{value:,.0f}<br>` +
+                    `Employment: %{customdata[0]:,}<br>` +
+                    `Avg Wage: $%{customdata[1]:,.0f}<br>` +
+                    `<extra></extra>`
+                );
+            });
+            
+            // Add individual occupations
+            processedData.forEach(group => {
+                group.children.forEach(occupation => {
+                    labels.push(occupation.occupation);
+                    parents.push(group.name);
+                    values.push(occupation.gdp);
+                    colors.push(occupation.avg_wage);
+                    customdata.push([occupation.employment, occupation.avg_wage, occupation.complexity]);
+                    hovertemplate.push(
+                        `<b>%{label}</b><br>` +
+                        `GDP: $%{value:,.0f}<br>` +
+                        `Employment: %{customdata[0]:,}<br>` +
+                        `Avg Wage: $%{customdata[1]:,.0f}<br>` +
+                        `Complexity: %{customdata[2]}<br>` +
+                        `<extra></extra>`
+                    );
+                });
+            });
+            
+            const data = [{
+                type: 'treemap',
+                labels: labels,
+                parents: parents,
+                values: values,
+                branchvalues: 'total',
+                customdata: customdata,
+                hovertemplate: hovertemplate,
+                marker: {
+                    colors: colors,
+                    colorscale: 'Viridis',
+                    colorbar: {
+                        title: 'Average Wage ($)'
+                    }
+                },
+                pathbar: {
+                    visible: true
+                }
+            }];
+            
+            const limitText = selectedVocationLimit === 'top50' ? 'Top 50 ' : '';
+            const stateText = selectedState === 'National' ? 'United States' : selectedState;
+            
+            const layout = {
+                margin: {l: 0, r: 0, b: 0, t: 60},
+                title: {
+                    text: `${limitText}${stateText} Labor Market GDP (${selectedYear})`,
+                    font: { size: 18 }
+                },
+                font: { size: 12 }
+            };
+            
+            Plotly.newPlot('treemap', data, layout);
+        }
+        
+        // Initialize visualization
+        document.addEventListener('DOMContentLoaded', function() {
+            createTreemap();
+        });
+    </script>
+</body>
+</html>

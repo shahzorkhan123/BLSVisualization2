@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BLS Visualization Test</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .pass { background-color: #d4edda; border-color: #c3e6cb; }
+        .fail { background-color: #f8d7da; border-color: #f5c6cb; }
+        h2 { margin-top: 0; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>BLS Visualization Dropdown Controls Test</h1>
+    
+    <div class="test-container">
+        <h2>Functionality Tests</h2>
+        <button onclick="testDropdownExists()">Test Dropdowns Exist</button>
+        <button onclick="testDataLoading()">Test Data Loading</button>
+        <button onclick="testFiltering()">Test Data Filtering</button>
+        <button onclick="testExport()">Test CSV Export</button>
+        <button onclick="runAllTests()">Run All Tests</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        // CSV parsing utility function
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        const value = values[index];
+                        // Convert numeric fields
+                        if (['year', 'TOT_EMP', 'A_MEAN', 'GDP', 'complexity_score'].includes(header)) {
+                            obj[header] = parseFloat(value);
+                        } else {
+                            obj[header] = value;
+                        }
+                    });
+                    data.push(obj);
+                }
+            }
+            return data;
+        }
+
+        function addResult(test, passed, message) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-container ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${passed ? 'PASS' : 'FAIL'} - ${message}`;
+            results.appendChild(div);
+        }
+        
+        function testDropdownExists() {
+            const iframe = document.createElement('iframe');
+            iframe.src = 'treemaps/interactive_treemap.html';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                try {
+                    const doc = iframe.contentDocument;
+                    const yearSelect = doc.getElementById('year-select');
+                    const parameterSelect = doc.getElementById('treemap-parameter');
+                    const vocationSelect = doc.getElementById('vocation-limit');
+                    
+                    const hasYearSelect = yearSelect && yearSelect.options.length > 0;
+                    const hasParameterSelect = parameterSelect && parameterSelect.options.length > 0;
+                    const hasVocationSelect = vocationSelect && vocationSelect.options.length > 0;
+                    
+                    const allPresent = hasYearSelect && hasParameterSelect && hasVocationSelect;
+                    
+                    addResult(
+                        'Dropdown Controls', 
+                        allPresent, 
+                        `Year: ${hasYearSelect}, Parameter: ${hasParameterSelect}, Vocations: ${hasVocationSelect}`
+                    );
+                    
+                    document.body.removeChild(iframe);
+                } catch (e) {
+                    addResult('Dropdown Controls', false, `Error: ${e.message}`);
+                    document.body.removeChild(iframe);
+                }
+            };
+        }
+        
+        function testDataLoading() {
+            fetch('treemaps/enhanced_job_data.csv')
+                .then(response => response.text())
+                .then(csvText => {
+                    const data = parseCSV(csvText);
+                    const hasYearData = data.some(d => d.year);
+                    const hasGDPData = data.some(d => d.GDP);
+                    const hasComplexityData = data.some(d => d.complexity_score);
+                    
+                    addResult(
+                        'Data Loading', 
+                        hasYearData && hasGDPData && hasComplexityData,
+                        `Records: ${data.length}, Year data: ${hasYearData}, GDP: ${hasGDPData}, Complexity: ${hasComplexityData}`
+                    );
+                })
+                .catch(e => {
+                    addResult('Data Loading', false, `Error: ${e.message}`);
+                });
+        }
+        
+        function testFiltering() {
+            fetch('treemaps/enhanced_job_data.csv')
+                .then(response => response.text())
+                .then(csvText => {
+                    const data = parseCSV(csvText);
+                    // Test year filtering
+                    const year2024Data = data.filter(d => d.year === 2024);
+                    const year2023Data = data.filter(d => d.year === 2023);
+                    
+                    // Test region filtering
+                    const nationalData = data.filter(d => d.Region_Type === 'National');
+                    const stateData = data.filter(d => d.Region_Type === 'State');
+                    
+                    // Test top 50 filtering (simulated)
+                    const sortedByEmployment = data
+                        .filter(d => d.TOT_EMP > 0)
+                        .sort((a, b) => b.TOT_EMP - a.TOT_EMP)
+                        .slice(0, 50);
+                    
+                    const filtersWork = year2024Data.length > 0 && year2023Data.length > 0 && 
+                                      nationalData.length > 0 && stateData.length > 0 &&
+                                      sortedByEmployment.length > 0;
+                    
+                    addResult(
+                        'Data Filtering', 
+                        filtersWork,
+                        `2024: ${year2024Data.length}, 2023: ${year2023Data.length}, National: ${nationalData.length}, State: ${stateData.length}, Top sorted: ${sortedByEmployment.length}`
+                    );
+                })
+                .catch(e => {
+                    addResult('Data Filtering', false, `Error: ${e.message}`);
+                });
+        }
+        
+        function testExport() {
+            // Test if export function exists
+            const iframe = document.createElement('iframe');
+            iframe.src = 'treemaps/interactive_treemap.html';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                try {
+                    const exportFunction = iframe.contentWindow.exportCurrentData;
+                    const exportButton = iframe.contentDocument.querySelector('button[onclick="exportCurrentData()"]');
+                    
+                    const hasExportFunction = typeof exportFunction === 'function';
+                    const hasExportButton = exportButton !== null;
+                    
+                    addResult(
+                        'CSV Export', 
+                        hasExportFunction && hasExportButton,
+                        `Export function: ${hasExportFunction}, Export button: ${hasExportButton}`
+                    );
+                    
+                    document.body.removeChild(iframe);
+                } catch (e) {
+                    addResult('CSV Export', false, `Error: ${e.message}`);
+                    document.body.removeChild(iframe);
+                }
+            };
+        }
+        
+        function runAllTests() {
+            document.getElementById('results').innerHTML = '';
+            setTimeout(() => testDropdownExists(), 100);
+            setTimeout(() => testDataLoading(), 500);
+            setTimeout(() => testFiltering(), 1000);
+            setTimeout(() => testExport(), 1500);
+        }
+        
+        // Auto-run tests on page load
+        window.onload = function() {
+            setTimeout(runAllTests, 1000);
+        };
+    </script>
+</body>
+</html>
