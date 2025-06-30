@@ -64,21 +64,32 @@
             
             <div class="control-panel">
                 <div class="row">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
+                        <label for="yearSelect" class="form-label fw-bold">Year:</label>
+                        <select id="yearSelect" class="form-select">
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
                         <label for="vizTypeSelect" class="form-label fw-bold">Visualization Type:</label>
                         <select id="vizTypeSelect" class="form-select">
                             <option value="treemap_employment">Treemap by Employment</option>
                             <option value="treemap_compensation">Treemap by Compensation</option>
+                            <option value="treemap_gdp">Treemap by GDP</option>
                             <option value="job_space">Job Space Network</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
                         <label for="countrySelect" class="form-label fw-bold">Country:</label>
                         <select id="countrySelect" class="form-select">
                             <option value="US">United States</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
                         <label for="stateSelect" class="form-label fw-bold">State/Region:</label>
                         <select id="stateSelect" class="form-select">
                             <option value="National">National (All States)</option>
@@ -134,7 +145,14 @@
                             <option value="Wyoming">Wyoming</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
+                        <label for="vocationLimitSelect" class="form-label fw-bold">Vocations:</label>
+                        <select id="vocationLimitSelect" class="form-select">
+                            <option value="all">All Vocations</option>
+                            <option value="top50">Top 50 Vocations</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
                         <label for="updateButton" class="form-label">&nbsp;</label>
                         <button id="updateButton" class="btn btn-primary w-100">Update Visualization</button>
                     </div>
@@ -202,24 +220,49 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Set initial visualization
-                document.getElementById('vizFrame').src = 'top50_treemap.html';
+                updateVisualization();
                 
                 // Set event listeners
                 document.getElementById('updateButton').addEventListener('click', updateVisualization);
                 
                 // Update visualization based on current selections
                 function updateVisualization() {
+                    const year = document.getElementById('yearSelect').value;
                     const vizType = document.getElementById('vizTypeSelect').value;
+                    const country = document.getElementById('countrySelect').value;
+                    const state = document.getElementById('stateSelect').value;
+                    const vocationLimit = document.getElementById('vocationLimitSelect').value;
+                    
+                    // Create URL parameters for the selected options
+                    const params = new URLSearchParams({
+                        year: year,
+                        country: country,
+                        state: state,
+                        vocationLimit: vocationLimit
+                    });
                     
                     // Set the appropriate visualization based on selection
                     if (vizType === 'treemap_employment') {
-                        document.getElementById('vizFrame').src = 'top50_treemap.html';
+                        document.getElementById('vizFrame').src = 'top50_treemap.html?' + params.toString();
                     } else if (vizType === 'treemap_compensation') {
-                        document.getElementById('vizFrame').src = 'fixed_treemap_compensation.html';
+                        document.getElementById('vizFrame').src = 'fixed_treemap_compensation.html?' + params.toString();
+                    } else if (vizType === 'treemap_gdp') {
+                        // Create a new GDP-focused treemap
+                        document.getElementById('vizFrame').src = 'gdp_treemap.html?' + params.toString();
                     } else if (vizType === 'job_space') {
-                        document.getElementById('vizFrame').src = 'refined_job_space.html';
+                        document.getElementById('vizFrame').src = 'refined_job_space.html?' + params.toString();
                     }
+                    
+                    // Update page title based on selections
+                    updatePageInfo(year, state, vocationLimit);
                 }
+                
+                function updatePageInfo(year, state, vocationLimit) {
+                    const limitText = vocationLimit === 'top50' ? 'Top 50 ' : '';
+                    const stateText = state === 'National' ? 'United States' : state;
+                    document.title = `${limitText}${stateText} Job Atlas (${year}) - BLS Visualization`;
+                }
+            });
             });
         </script>
     </body>
