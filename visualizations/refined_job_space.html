@@ -5,7 +5,8 @@
         <title>Job Space Network</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="../lib/d3.min.js"></script>
+        <link rel="stylesheet" href="../shared/common.css">
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -186,8 +187,10 @@
             </div>
         </div>
         
+        <script src="../shared/utils.js"></script>
+        <script src="../data/job_data.js"></script>
         <script>
-            // Sample data for job space network
+            // Sample data for job space network - can be enhanced with actual data
             const nodes = [
                 // Management & Business
                 {id: "11-1021", name: "General and Operations Managers", group: "Management & Business", employment: 2400000, complexity: 1.8},

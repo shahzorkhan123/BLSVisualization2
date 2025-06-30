@@ -2,8 +2,9 @@
 <html>
 <head>
     <title>Interactive Job Price/Compensation Treemap</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../lib/plotly.min.js"></script>
+    <script src="../lib/jquery.min.js"></script>
+    <link rel="stylesheet" href="../shared/common.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -148,55 +149,28 @@
         <p class="note">Interactive BLS Job Price/Compensation Treemap - Use the dropdown controls to filter data by year, region, and other parameters. The treemap displays total compensation and wage data with dynamic sizing and coloring options.</p>
     </div>
 
+    <script src="../shared/utils.js"></script>
+    <script src="../shared/treemap.js"></script>
+    <script src="../data/job_data.js"></script>
     <script>
-        // CSV parsing utility function
-        function parseCSV(text) {
-            const lines = text.split('\n');
-            const headers = lines[0].split(',');
-            const data = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim()) {
-                    const values = lines[i].split(',');
-                    const obj = {};
-                    headers.forEach((header, index) => {
-                        const value = values[index];
-                        // Convert numeric fields
-                        if (['year', 'TOT_EMP', 'A_MEAN', 'GDP', 'complexity_score'].includes(header)) {
-                            obj[header] = parseFloat(value);
-                        } else {
-                            obj[header] = value;
-                        }
-                    });
-                    data.push(obj);
-                }
-            }
-            return data;
-        }
-
-        // Embedded data to avoid CORS issues
-        const embeddedData = [
-            {"year":2024,"Region_Type":"National","Region":"United States","SOC_Code":"15-1252","OCC_TITLE":"Software Developers","SOC_Major_Group_Name":"Computer and Mathematical","TOT_EMP":1847900,"A_MEAN":110140,"GDP":203525346000,"complexity_score":0.85},
-            {"year":2024,"Region_Type":"National","Region":"United States","SOC_Code":"29-1141","OCC_TITLE":"Registered Nurses","SOC_Major_Group_Name":"Healthcare Practitioners","TOT_EMP":3175390,"A_MEAN":80010,"GDP":254095239900,"complexity_score":0.72},
-            {"year":2024,"Region_Type":"National","Region":"United States","SOC_Code":"25-2021","OCC_TITLE":"Elementary School Teachers","SOC_Major_Group_Name":"Education Training and Library","TOT_EMP":1424890,"A_MEAN":60940,"GDP":86824851600,"complexity_score":0.68},
-            {"year":2024,"Region_Type":"National","Region":"United States","SOC_Code":"41-2031","OCC_TITLE":"Retail Salespersons","SOC_Major_Group_Name":"Sales and Related","TOT_EMP":4155020,"A_MEAN":27080,"GDP":112545342400,"complexity_score":0.42},
-            {"year":2024,"Region_Type":"State","Region":"California","SOC_Code":"15-1252","OCC_TITLE":"Software Developers","SOC_Major_Group_Name":"Computer and Mathematical","TOT_EMP":395280,"A_MEAN":142170,"GDP":56214542960,"complexity_score":0.87},
-            {"year":2024,"Region_Type":"State","Region":"California","SOC_Code":"29-1141","OCC_TITLE":"Registered Nurses","SOC_Major_Group_Name":"Healthcare Practitioners","TOT_EMP":330520,"A_MEAN":124000,"GDP":40984480000,"complexity_score":0.74},
-            {"year":2023,"Region_Type":"National","Region":"United States","SOC_Code":"15-1252","OCC_TITLE":"Software Developers","SOC_Major_Group_Name":"Computer and Mathematical","TOT_EMP":1795600,"A_MEAN":107800,"GDP":193659280000,"complexity_score":0.84},
-            {"year":2023,"Region_Type":"National","Region":"United States","SOC_Code":"29-1141","OCC_TITLE":"Registered Nurses","SOC_Major_Group_Name":"Healthcare Practitioners","TOT_EMP":3100250,"A_MEAN":78500,"GDP":243369625000,"complexity_score":0.71}
-        ];
-
-        // Load the data
-        let allData = embeddedData;
+        // Load the data from shared data source
+        let allData = [];
         let currentFilteredData = [];
         const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
         const metros = ["New York-Newark-Jersey City, NY-NJ-PA", "Los Angeles-Long Beach-Anaheim, CA", "Chicago-Naperville-Elgin, IL-IN-WI", "Dallas-Fort Worth-Arlington, TX", "Houston-The Woodlands-Sugar Land, TX", "Washington-Arlington-Alexandria, DC-VA-MD-WV", "Miami-Fort Lauderdale-West Palm Beach, FL", "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD", "Atlanta-Sandy Springs-Roswell, GA", "Boston-Cambridge-Newton, MA-NH", "San Francisco-Oakland-Hayward, CA", "Phoenix-Mesa-Scottsdale, AZ", "Riverside-San Bernardino-Ontario, CA", "Detroit-Warren-Dearborn, MI", "Seattle-Tacoma-Bellevue, WA"];
         
         // Initialize the visualization
-        $(document).ready(function() {
-            // Data is already embedded, just initialize
-            updateRegionDropdown();
-            updateTreemap();
+        $(document).ready(async function() {
+            try {
+                // Load data from CSV via shared data loader
+                allData = await getBLSData();
+                updateRegionDropdown();
+                updateTreemap();
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                // Display error message to user
+                $('#treemap').html('<div style="padding: 20px; text-align: center; color: #666;">Failed to load data. Please refresh the page.</div>');
+            }
             
             // Event listeners for all controls
             $('#year-select').change(updateTreemap);
