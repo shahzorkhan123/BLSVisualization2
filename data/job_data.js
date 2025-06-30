@@ -1,17 +1,34 @@
 /**
  * Job data for BLS Visualizations
- * This file can be updated by Python scripts without modifying HTML files
+ * This file loads data from CSV files and provides a CORS-free interface
  * Format: JSONP-style to avoid CORS issues with static hosting
  * Last updated: 2025-06-30 02:19:21
  */
 
-// Global data object that can be updated by Python scripts
+// Global data loader that reads from CSV files
 window.BLS_DATA = {
     lastUpdated: '2025-06-30',
     dataSource: 'BLS OES Data + O*NET Complexity Scores',
     
-    // Main dataset - updated by Python scripts
-    jobData: [
+    // Main dataset - loaded from CSV files
+    jobData: null,
+    
+    // Load data from CSV file
+    async loadData() {
+        if (this.jobData) return this.jobData; // Return cached data if already loaded
+        
+        try {
+            // Load the main occupational data CSV
+            const response = await fetch('./data/us_occupational_data.csv');
+            const csvText = await response.text();
+            
+            // Parse CSV data
+            this.jobData = this.parseCSV(csvText);
+            return this.jobData;
+        } catch (error) {
+            console.error('Failed to load job data:', error);
+            // Fallback to sample data for demo purposes
+            this.jobData = [
         {
                 "year": 2024,
                 "Region_Type": "National",
@@ -108,7 +125,36 @@ window.BLS_DATA = {
                 "GDP": 21060000000,
                 "complexity_score": 0.85
         }
-],
+            ];
+            return this.jobData;
+        }
+    },
+    
+    // Parse CSV text into array of objects
+    parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        const headers = lines[0].split(',');
+        const data = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',');
+            const row = {};
+            
+            headers.forEach((header, index) => {
+                const value = values[index];
+                // Convert numeric fields
+                if (header === 'employment' || header === 'mean_annual_wage' || header === 'complexity_score') {
+                    row[header] = parseFloat(value) || 0;
+                } else {
+                    row[header] = value;
+                }
+            });
+            
+            data.push(row);
+        }
+        
+        return data;
+    },
     
     // Metadata for dropdowns and filters
     metadata: {
@@ -146,12 +192,12 @@ window.BLS_DATA = {
                         "Texas"
                 ]
         }
-}
+    }
 };
 
-// Helper function to get data
-window.getBLSData = function() {
-    return window.BLS_DATA.jobData;
+// Helper function to get data (async now)
+window.getBLSData = async function() {
+    return await window.BLS_DATA.loadData();
 };
 
 // Helper function to get metadata
@@ -174,4 +220,4 @@ window.updateBLSData = function(newData, newMetadata) {
     document.dispatchEvent(event);
 };
 
-console.log('BLS Data loaded:', window.BLS_DATA.jobData.length, 'records');
+console.log('BLS Data loader initialized - use getBLSData() to load data from CSV');
