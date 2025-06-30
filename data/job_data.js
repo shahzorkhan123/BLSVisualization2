@@ -2,7 +2,7 @@
  * Job data for BLS Visualizations
  * This file can be updated by Python scripts without modifying HTML files
  * Format: JSONP-style to avoid CORS issues with static hosting
- * Last updated: 2025-06-30 02:13:13
+ * Last updated: 2025-06-30 02:19:21
  */
 
 // Global data object that can be updated by Python scripts
@@ -49,42 +49,6 @@ window.BLS_DATA = {
                 "complexity_score": 0.68
         },
         {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "41-2031",
-                "OCC_TITLE": "Retail Salespersons",
-                "SOC_Major_Group_Name": "Sales and Related",
-                "TOT_EMP": 4155020,
-                "A_MEAN": 27080,
-                "GDP": 112545342400,
-                "complexity_score": 0.42
-        },
-        {
-                "year": 2024,
-                "Region_Type": "State",
-                "Region": "California",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 395280,
-                "A_MEAN": 142170,
-                "GDP": 56214542960,
-                "complexity_score": 0.87
-        },
-        {
-                "year": 2024,
-                "Region_Type": "State",
-                "Region": "California",
-                "SOC_Code": "29-1141",
-                "OCC_TITLE": "Registered Nurses",
-                "SOC_Major_Group_Name": "Healthcare Practitioners",
-                "TOT_EMP": 330520,
-                "A_MEAN": 124000,
-                "GDP": 40984480000,
-                "complexity_score": 0.74
-        },
-        {
                 "year": 2023,
                 "Region_Type": "National",
                 "Region": "United States",
@@ -92,9 +56,9 @@ window.BLS_DATA = {
                 "OCC_TITLE": "Software Developers",
                 "SOC_Major_Group_Name": "Computer and Mathematical",
                 "TOT_EMP": 1795600,
-                "A_MEAN": 107800,
-                "GDP": 193659280000,
-                "complexity_score": 0.84
+                "A_MEAN": 107510,
+                "GDP": 192899356000,
+                "complexity_score": 0.85
         },
         {
                 "year": 2023,
@@ -107,6 +71,42 @@ window.BLS_DATA = {
                 "A_MEAN": 78500,
                 "GDP": 243369625000,
                 "complexity_score": 0.71
+        },
+        {
+                "year": 2024,
+                "Region_Type": "State",
+                "Region": "California",
+                "SOC_Code": "15-1252",
+                "OCC_TITLE": "Software Developers",
+                "SOC_Major_Group_Name": "Computer and Mathematical",
+                "TOT_EMP": 425000,
+                "A_MEAN": 145000,
+                "GDP": 61625000000,
+                "complexity_score": 0.85
+        },
+        {
+                "year": 2024,
+                "Region_Type": "State",
+                "Region": "Texas",
+                "SOC_Code": "15-1252",
+                "OCC_TITLE": "Software Developers",
+                "SOC_Major_Group_Name": "Computer and Mathematical",
+                "TOT_EMP": 195000,
+                "A_MEAN": 108000,
+                "GDP": 21060000000,
+                "complexity_score": 0.85
+        },
+        {
+                "year": 2024,
+                "Region_Type": "Metropolitan",
+                "Region": "New York-Newark-Jersey City, NY-NJ-PA",
+                "SOC_Code": "15-1252",
+                "OCC_TITLE": "Software Developers",
+                "SOC_Major_Group_Name": "Computer and Mathematical",
+                "TOT_EMP": 156000,
+                "A_MEAN": 135000,
+                "GDP": 21060000000,
+                "complexity_score": 0.85
         }
 ],
     
@@ -117,6 +117,7 @@ window.BLS_DATA = {
                 2024
         ],
         "regionTypes": [
+                "Metropolitan",
                 "National",
                 "State"
         ],
@@ -134,11 +135,15 @@ window.BLS_DATA = {
                 "top50"
         ],
         "regions": {
+                "Metropolitan": [
+                        "New York-Newark-Jersey City, NY-NJ-PA"
+                ],
                 "National": [
                         "United States"
                 ],
                 "State": [
-                        "California"
+                        "California",
+                        "Texas"
                 ]
         }
 }
