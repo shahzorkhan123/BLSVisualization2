@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Job Complexity Treemap</title>
+    
+    <!-- Local libraries for better caching -->
+    <link rel="stylesheet" href="../lib/bootstrap.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    
+    <script src="../lib/plotly.min.js"></script>
+    <script src="../lib/jquery.min.js"></script>
+    <script src="../shared/utils.js"></script>
+    <script src="../shared/treemap.js"></script>
+    <script src="../data/job_data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Job Complexity Treemap</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="year-select">Year:</label>
+                <select id="year-select">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="region-type-select">Region Type:</label>
+                <select id="region-type-select">
+                    <option value="National">National</option>
+                    <option value="State">State</option>
+                    <option value="Metropolitan">Metropolitan</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="region-select">Region:</label>
+                <select id="region-select">
+                    <option value="United States">United States</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="parameter-select">Parameter:</label>
+                <select id="parameter-select">
+                    <option value="employment">Employment</option>
+                    <option value="gdp">GDP</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="color-scheme-select">Color Scheme:</label>
+                <select id="color-scheme-select">
+                    <option value="complexity">Complexity</option>
+                    <option value="employment">Employment</option>
+                    <option value="wage">Wage</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="vocation-limit">Vocations:</label>
+                <select id="vocation-limit">
+                    <option value="top50">Top 50 Vocations</option>
+                    <option value="all">All Vocations</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="treemap"></div>
+        
+        <div class="export-controls">
+            <button onclick="exportCurrentData()">Export Current Data as CSV</button>
+        </div>
+        
+        <p class="note">Interactive BLS Job Complexity Treemap - Use the dropdown controls to filter data by year, region, and other parameters. The treemap displays employment and complexity data with dynamic sizing and coloring options.</p>
+    </div>
+
+    <script>
+        // Global variables
+        let allData = [];
+        let currentFilteredData = [];
+        
+        // Initialize the application
+        function initializeApp() {
+            // Load data using the new data loading strategy
+            allData = getBLSData();
+            console.log('Loaded data:', allData.length, 'records');
+            
+            // Initialize dropdowns
+            updateRegionDropdown();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initial treemap render
+            updateTreemap();
+        }
+        
+        // Set up event listeners for controls
+        function setupEventListeners() {
+            document.getElementById('year-select').addEventListener('change', updateTreemap);
+            document.getElementById('region-type-select').addEventListener('change', function() {
+                updateRegionDropdown();
+                updateTreemap();
+            });
+            document.getElementById('region-select').addEventListener('change', updateTreemap);
+            document.getElementById('parameter-select').addEventListener('change', updateTreemap);
+            document.getElementById('color-scheme-select').addEventListener('change', updateTreemap);
+            document.getElementById('vocation-limit').addEventListener('change', updateTreemap);
+        }
+        
+        // Update region dropdown based on region type
+        function updateRegionDropdown() {
+            const regionType = document.getElementById('region-type-select').value;
+            const metadata = getBLSMetadata();
+            const regions = metadata.regions[regionType] || ['United States'];
+            updateDropdown('region-select', regions, regions[0]);
+        }
+        
+        // Update treemap visualization
+        function updateTreemap() {
+            const year = parseInt(document.getElementById('year-select').value);
+            const regionType = document.getElementById('region-type-select').value;
+            const region = document.getElementById('region-select').value;
+            const parameter = document.getElementById('parameter-select').value;
+            const colorScheme = document.getElementById('color-scheme-select').value;
+            const limit = document.getElementById('vocation-limit').value;
+            
+            const options = {
+                year,
+                regionType,
+                region,
+                parameter,
+                colorScheme,
+                limit
+            };
+            
+            console.log('Updating treemap with options:', options);
+            currentFilteredData = createTreemap(allData, 'treemap', options);
+        }
+        
+        // Export current data
+        function exportCurrentData() {
+            if (currentFilteredData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            const year = document.getElementById('year-select').value;
+            const regionType = document.getElementById('region-type-select').value;
+            const region = document.getElementById('region-select').value;
+            const parameter = document.getElementById('parameter-select').value;
+            const limit = document.getElementById('vocation-limit').value;
+            
+            const filename = `job_complexity_treemap_${year}_${regionType}_${region.replace(/[^a-zA-Z0-9]/g, '_')}_${parameter}_${limit}.csv`;
+            exportCurrentData(currentFilteredData, filename);
+        }
+        
+        // Listen for data updates
+        document.addEventListener('blsDataUpdated', function(event) {
+            console.log('Data updated:', event.detail);
+            allData = event.detail.data;
+            updateRegionDropdown();
+            updateTreemap();
+        });
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
