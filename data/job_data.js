@@ -18,15 +18,28 @@ window.BLS_DATA = {
         if (this.jobData) return this.jobData; // Return cached data if already loaded
         
         try {
+            // Determine the correct path based on current location
+            let csvPath;
+            if (window.location.pathname.includes('/visualizations/')) {
+                csvPath = '../data/us_occupational_data.csv';
+            } else {
+                csvPath = './data/us_occupational_data.csv';
+            }
+            
             // Load the main occupational data CSV
-            const response = await fetch('./data/us_occupational_data.csv');
+            const response = await fetch(csvPath);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const csvText = await response.text();
             
             // Parse CSV data
             this.jobData = this.parseCSV(csvText);
+            console.log('Successfully loaded', this.jobData.length, 'job records from CSV');
             return this.jobData;
         } catch (error) {
-            console.error('Failed to load job data:', error);
+            console.error('Failed to load job data from CSV:', error);
+            console.log('Using fallback sample data for demo purposes');
             // Fallback to sample data for demo purposes
             this.jobData = [
         {
@@ -124,48 +137,39 @@ window.BLS_DATA = {
                 "A_MEAN": 135000,
                 "GDP": 21060000000,
                 "complexity_score": 0.85
-        }
-                {
-                    occupation_code: "15-1252",
-                    occupation_title: "Software Developers", 
-                    employment: 1847900,
-                    mean_annual_wage: 110140,
-                    complexity_score: 0.85
-                },
-                {
-                    occupation_code: "29-1141",
-                    occupation_title: "Registered Nurses",
-                    employment: 3175390, 
-                    mean_annual_wage: 81220,
-                    complexity_score: 0.7
-                },
-                {
-                    occupation_code: "25-2031",
-                    occupation_title: "Secondary School Teachers",
-                    employment: 1057090, 
-                    mean_annual_wage: 65220,
-                    complexity_score: 0.68
-                }
-        }
+        }];
     },
     
     // Parse CSV text into array of objects
     parseCSV(csvText) {
         const lines = csvText.trim().split('\n');
+        if (lines.length < 2) {
+            throw new Error('CSV file appears to be empty or invalid');
+        }
+        
         const headers = lines[0].split(',');
         const data = [];
         
         for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',');
+            const line = lines[i].trim();
+            if (!line) continue; // Skip empty lines
+            
+            const values = line.split(',');
+            if (values.length !== headers.length) {
+                console.warn(`Skipping malformed line ${i + 1}: ${line}`);
+                continue;
+            }
+            
             const row = {};
             
             headers.forEach((header, index) => {
                 const value = values[index];
-                // Convert numeric fields
+                // Convert numeric fields based on CSV structure
                 if (header === 'employment' || header === 'mean_annual_wage' || header === 'complexity_score') {
                     row[header] = parseFloat(value) || 0;
                 } else {
-                    row[header] = value;
+                    // Clean up string values (remove quotes if present)
+                    row[header] = value.replace(/^"(.*)"$/, '$1');
                 }
             });
             
