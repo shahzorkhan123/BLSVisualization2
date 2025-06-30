@@ -125,8 +125,27 @@ window.BLS_DATA = {
                 "GDP": 21060000000,
                 "complexity_score": 0.85
         }
-            ];
-            return this.jobData;
+                {
+                    occupation_code: "15-1252",
+                    occupation_title: "Software Developers", 
+                    employment: 1847900,
+                    mean_annual_wage: 110140,
+                    complexity_score: 0.85
+                },
+                {
+                    occupation_code: "29-1141",
+                    occupation_title: "Registered Nurses",
+                    employment: 3175390, 
+                    mean_annual_wage: 81220,
+                    complexity_score: 0.7
+                },
+                {
+                    occupation_code: "25-2031",
+                    occupation_title: "Secondary School Teachers",
+                    employment: 1057090, 
+                    mean_annual_wage: 65220,
+                    complexity_score: 0.68
+                }
         }
     },
     
