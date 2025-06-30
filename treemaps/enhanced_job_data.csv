@@ -1,0 +1,9 @@
+year,Region_Type,Region,SOC_Code,OCC_TITLE,SOC_Major_Group_Name,TOT_EMP,A_MEAN,GDP,complexity_score
+2024,National,United States,15-1252,Software Developers,Computer and Mathematical,1847900,110140,203525346000,0.85
+2024,National,United States,29-1141,Registered Nurses,Healthcare Practitioners,3175390,80010,254095239900,0.72
+2024,National,United States,25-2021,Elementary School Teachers,Education Training and Library,1424890,60940,86824851600,0.68
+2024,National,United States,41-2031,Retail Salespersons,Sales and Related,4155020,27080,112545342400,0.42
+2024,State,California,15-1252,Software Developers,Computer and Mathematical,395280,142170,56214542960,0.87
+2024,State,California,29-1141,Registered Nurses,Healthcare Practitioners,330520,124000,40984480000,0.74
+2023,National,United States,15-1252,Software Developers,Computer and Mathematical,1795600,107800,193659280000,0.84
+2023,National,United States,29-1141,Registered Nurses,Healthcare Practitioners,3100250,78500,243369625000,0.71

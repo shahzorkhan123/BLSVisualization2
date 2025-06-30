@@ -149,6 +149,31 @@
     </div>
 
     <script>
+        // CSV parsing utility function
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        const value = values[index];
+                        // Convert numeric fields
+                        if (['year', 'TOT_EMP', 'A_MEAN', 'GDP', 'complexity_score'].includes(header)) {
+                            obj[header] = parseFloat(value);
+                        } else {
+                            obj[header] = value;
+                        }
+                    });
+                    data.push(obj);
+                }
+            }
+            return data;
+        }
+
         // Load the data
         let allData;
         let currentFilteredData = [];
@@ -158,8 +183,8 @@
         // Initialize the visualization
         $(document).ready(function() {
             // Load the enhanced data first, fallback to combined data
-            $.getJSON('../treemaps/enhanced_job_data.json', function(data) {
-                allData = data;
+            $.get('../treemaps/enhanced_job_data.csv', function(csvData) {
+                allData = parseCSV(csvData);
                 updateRegionDropdown();
                 updateTreemap();
             }).fail(function() {

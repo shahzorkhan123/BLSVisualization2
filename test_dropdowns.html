@@ -29,6 +29,31 @@
     <div id="results"></div>
     
     <script>
+        // CSV parsing utility function
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        const value = values[index];
+                        // Convert numeric fields
+                        if (['year', 'TOT_EMP', 'A_MEAN', 'GDP', 'complexity_score'].includes(header)) {
+                            obj[header] = parseFloat(value);
+                        } else {
+                            obj[header] = value;
+                        }
+                    });
+                    data.push(obj);
+                }
+            }
+            return data;
+        }
+
         function addResult(test, passed, message) {
             const results = document.getElementById('results');
             const div = document.createElement('div');
@@ -71,9 +96,10 @@
         }
         
         function testDataLoading() {
-            fetch('treemaps/enhanced_job_data.json')
-                .then(response => response.json())
-                .then(data => {
+            fetch('treemaps/enhanced_job_data.csv')
+                .then(response => response.text())
+                .then(csvText => {
+                    const data = parseCSV(csvText);
                     const hasYearData = data.some(d => d.year);
                     const hasGDPData = data.some(d => d.GDP);
                     const hasComplexityData = data.some(d => d.complexity_score);
@@ -90,9 +116,10 @@
         }
         
         function testFiltering() {
-            fetch('treemaps/enhanced_job_data.json')
-                .then(response => response.json())
-                .then(data => {
+            fetch('treemaps/enhanced_job_data.csv')
+                .then(response => response.text())
+                .then(csvText => {
+                    const data = parseCSV(csvText);
                     // Test year filtering
                     const year2024Data = data.filter(d => d.year === 2024);
                     const year2023Data = data.filter(d => d.year === 2023);
