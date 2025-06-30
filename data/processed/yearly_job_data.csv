@@ -1,0 +1,23 @@
+year,region_type,region,soc_code,occupation_title,major_group_name,employment,annual_mean_wage,gdp,complexity_score
+2024,National,United States,15-1252,Software Developers,Computer and Mathematical,1847900,110140,203525346000,0.85
+2024,National,United States,29-1141,Registered Nurses,Healthcare Practitioners,3175390,80010,254095239900,0.72
+2024,National,United States,25-2021,Elementary School Teachers,Education Training and Library,1424890,60940,86824851600,0.68
+2024,National,United States,41-2031,Retail Salespersons,Sales and Related,4155020,27080,112545342400,0.42
+2024,National,United States,41-2011,Cashiers,Sales and Related,3333010,24040,80129880400,0.38
+2024,National,United States,11-1021,General and Operations Managers,Management,2289770,115250,263938802500,0.78
+2024,National,United States,35-2021,Food Preparation Workers,Food Preparation and Serving,876770,25410,22285031700,0.32
+2024,National,United States,53-3032,Heavy Truck Drivers,Transportation,2063770,47130,97286430100,0.45
+2024,State,California,15-1252,Software Developers,Computer and Mathematical,395280,142170,56214542960,0.87
+2024,State,California,29-1141,Registered Nurses,Healthcare Practitioners,330520,124000,40984480000,0.74
+2024,State,California,25-2021,Elementary School Teachers,Education Training and Library,203970,80950,16513231500,0.70
+2024,State,Texas,15-1252,Software Developers,Computer and Mathematical,208950,105280,21999136000,0.83
+2024,State,Texas,29-1141,Registered Nurses,Healthcare Practitioners,267890,77280,20700019200,0.71
+2024,State,New York,15-1252,Software Developers,Computer and Mathematical,190020,128660,24459173200,0.88
+2023,National,United States,15-1252,Software Developers,Computer and Mathematical,1795600,107800,193659280000,0.84
+2023,National,United States,29-1141,Registered Nurses,Healthcare Practitioners,3100250,78500,243369625000,0.71
+2023,National,United States,25-2021,Elementary School Teachers,Education Training and Library,1412340,59420,83925500800,0.67
+2023,State,California,15-1252,Software Developers,Computer and Mathematical,384720,138950,53455374000,0.86
+2023,State,Texas,15-1252,Software Developers,Computer and Mathematical,201230,102560,20638100800,0.82
+2022,National,United States,15-1252,Software Developers,Computer and Mathematical,1756900,105590,185515791000,0.83
+2022,National,United States,29-1141,Registered Nurses,Healthcare Practitioners,3058470,76840,235052584800,0.70
+2022,State,California,15-1252,Software Developers,Computer and Mathematical,376440,135280,50920915200,0.85
