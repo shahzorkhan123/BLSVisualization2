@@ -1,0 +1,505 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Job Space Network</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f8f9fa;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                padding: 20px;
+            }
+            h1 {
+                color: #333;
+                margin-top: 0;
+            }
+            p {
+                color: #666;
+                line-height: 1.5;
+            }
+            .visualization {
+                width: 100%;
+                height: 800px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                overflow: hidden;
+                position: relative;
+                background-color: #fff;
+            }
+            .tooltip {
+                position: absolute;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                pointer-events: none;
+                font-size: 12px;
+                z-index: 1000;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .controls {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255,255,255,0.9);
+                padding: 10px;
+                border-radius: 4px;
+                z-index: 100;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .legend {
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                background: rgba(255,255,255,0.9);
+                padding: 15px;
+                border-radius: 4px;
+                z-index: 100;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                max-width: 300px;
+            }
+            .legend h3 {
+                margin-top: 0;
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            .legend-color {
+                width: 15px;
+                height: 15px;
+                margin-right: 8px;
+                border-radius: 3px;
+            }
+            .legend-text {
+                font-size: 12px;
+            }
+            .button {
+                background-color: #4a6fa5;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                margin: 0 5px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+            .button:hover {
+                background-color: #3a5a80;
+            }
+            .node-label {
+                font-size: 10px;
+                pointer-events: none;
+                text-shadow: 0 1px 2px rgba(255,255,255,0.8), 0 -1px 2px rgba(255,255,255,0.8), 1px 0 2px rgba(255,255,255,0.8), -1px 0 2px rgba(255,255,255,0.8);
+            }
+            .instructions {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f0f4f8;
+                border-radius: 5px;
+                font-size: 14px;
+            }
+            .instructions h3 {
+                margin-top: 0;
+                color: #333;
+            }
+            .instructions ul {
+                padding-left: 20px;
+                margin-bottom: 0;
+            }
+            .instructions li {
+                margin-bottom: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Job Space Network</h1>
+            <p>This network visualization shows how different occupations are connected based on skill similarity, similar to the Product Space in the Harvard Atlas of Economic Complexity. Occupations that require similar skills are positioned closer together, with node size representing employment and color representing complexity.</p>
+            
+            <div class="visualization" id="jobSpace">
+                <div class="controls">
+                    <button id="zoomIn" class="button">+</button>
+                    <button id="zoomOut" class="button">-</button>
+                    <button id="reset" class="button">Reset</button>
+                </div>
+                <div class="legend">
+                    <h3>Occupation Groups</h3>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #4e79a7;"></div>
+                        <div class="legend-text">Management & Business</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #f28e2c;"></div>
+                        <div class="legend-text">STEM</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #e15759;"></div>
+                        <div class="legend-text">Healthcare</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #76b7b2;"></div>
+                        <div class="legend-text">Education & Social Services</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #59a14f;"></div>
+                        <div class="legend-text">Service</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #edc949;"></div>
+                        <div class="legend-text">Sales & Office</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #af7aa1;"></div>
+                        <div class="legend-text">Production & Transportation</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ff9da7;"></div>
+                        <div class="legend-text">Natural Resources & Construction</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3>How to Use This Visualization</h3>
+                <ul>
+                    <li><strong>Zoom:</strong> Use the + and - buttons or mouse wheel to zoom in and out</li>
+                    <li><strong>Pan:</strong> Click and drag to move around the visualization</li>
+                    <li><strong>Hover:</strong> Hover over nodes to see occupation details</li>
+                    <li><strong>Reset:</strong> Click the Reset button to return to the original view</li>
+                </ul>
+            </div>
+        </div>
+        
+        <script>
+            // Sample data for job space network
+            const nodes = [
+                // Management & Business
+                {id: "11-1021", name: "General and Operations Managers", group: "Management & Business", employment: 2400000, complexity: 1.8},
+                {id: "13-2011", name: "Accountants and Auditors", group: "Management & Business", employment: 1300000, complexity: 1.5},
+                {id: "11-3031", name: "Financial Managers", group: "Management & Business", employment: 700000, complexity: 1.9},
+                {id: "13-1111", name: "Management Analysts", group: "Management & Business", employment: 900000, complexity: 1.7},
+                {id: "11-2021", name: "Marketing Managers", group: "Management & Business", employment: 300000, complexity: 1.6},
+                
+                // STEM
+                {id: "15-1256", name: "Software Developers", group: "STEM", employment: 1500000, complexity: 2.1},
+                {id: "15-1211", name: "Computer Systems Analysts", group: "STEM", employment: 600000, complexity: 1.9},
+                {id: "17-2051", name: "Civil Engineers", group: "STEM", employment: 300000, complexity: 1.8},
+                {id: "17-2071", name: "Electrical Engineers", group: "STEM", employment: 200000, complexity: 2.0},
+                {id: "19-2031", name: "Chemists", group: "STEM", employment: 80000, complexity: 1.9},
+                
+                // Healthcare
+                {id: "29-1141", name: "Registered Nurses", group: "Healthcare", employment: 3000000, complexity: 1.6},
+                {id: "29-1123", name: "Physical Therapists", group: "Healthcare", employment: 250000, complexity: 1.7},
+                {id: "29-1051", name: "Pharmacists", group: "Healthcare", employment: 300000, complexity: 1.9},
+                {id: "29-1071", name: "Physician Assistants", group: "Healthcare", employment: 150000, complexity: 2.0},
+                {id: "31-1131", name: "Nursing Assistants", group: "Healthcare", employment: 1400000, complexity: 0.9},
+                
+                // Education & Social Services
+                {id: "25-2021", name: "Elementary School Teachers", group: "Education & Social Services", employment: 1400000, complexity: 1.4},
+                {id: "25-1099", name: "Postsecondary Teachers", group: "Education & Social Services", employment: 1000000, complexity: 1.8},
+                {id: "21-1021", name: "Child, Family, and School Social Workers", group: "Education & Social Services", employment: 300000, complexity: 1.5},
+                {id: "21-1011", name: "Substance Abuse Counselors", group: "Education & Social Services", employment: 100000, complexity: 1.4},
+                {id: "25-9045", name: "Teaching Assistants", group: "Education & Social Services", employment: 1200000, complexity: 0.9},
+                
+                // Service
+                {id: "35-3031", name: "Waiters and Waitresses", group: "Service", employment: 2000000, complexity: 0.7},
+                {id: "35-2014", name: "Cooks, Restaurant", group: "Service", employment: 1400000, complexity: 0.8},
+                {id: "33-3051", name: "Police Officers", group: "Service", employment: 700000, complexity: 1.3},
+                {id: "33-2011", name: "Firefighters", group: "Service", employment: 300000, complexity: 1.2},
+                {id: "37-2011", name: "Janitors and Cleaners", group: "Service", employment: 2100000, complexity: 0.6},
+                
+                // Sales & Office
+                {id: "41-2031", name: "Retail Salespersons", group: "Sales & Office", employment: 3600000, complexity: 0.7},
+                {id: "41-2011", name: "Cashiers", group: "Sales & Office", employment: 3300000, complexity: 0.6},
+                {id: "43-9061", name: "Office Clerks", group: "Sales & Office", employment: 2800000, complexity: 0.9},
+                {id: "43-6014", name: "Secretaries and Administrative Assistants", group: "Sales & Office", employment: 2200000, complexity: 1.0},
+                {id: "43-4051", name: "Customer Service Representatives", group: "Sales & Office", employment: 2900000, complexity: 0.9},
+                
+                // Production & Transportation
+                {id: "53-3032", name: "Heavy and Tractor-Trailer Truck Drivers", group: "Production & Transportation", employment: 2000000, complexity: 0.9},
+                {id: "53-7062", name: "Laborers and Material Movers", group: "Production & Transportation", employment: 2900000, complexity: 0.7},
+                {id: "51-2098", name: "Assemblers and Fabricators", group: "Production & Transportation", employment: 1600000, complexity: 0.8},
+                {id: "51-4121", name: "Welders", group: "Production & Transportation", employment: 400000, complexity: 1.1},
+                {id: "51-9061", name: "Inspectors, Testers, and Sorters", group: "Production & Transportation", employment: 500000, complexity: 1.0},
+                
+                // Natural Resources & Construction
+                {id: "47-2061", name: "Construction Laborers", group: "Natural Resources & Construction", employment: 1000000, complexity: 0.8},
+                {id: "47-2031", name: "Carpenters", group: "Natural Resources & Construction", employment: 700000, complexity: 1.1},
+                {id: "47-2111", name: "Electricians", group: "Natural Resources & Construction", employment: 700000, complexity: 1.2},
+                {id: "47-2152", name: "Plumbers", group: "Natural Resources & Construction", employment: 500000, complexity: 1.2},
+                {id: "45-2092", name: "Farmworkers", group: "Natural Resources & Construction", employment: 300000, complexity: 0.7}
+            ];
+            
+            // Define links between occupations based on skill similarity
+            const links = [
+                // Management & Business internal links
+                {source: "11-1021", target: "13-2011", value: 0.7},
+                {source: "11-1021", target: "11-3031", value: 0.8},
+                {source: "11-1021", target: "13-1111", value: 0.7},
+                {source: "11-1021", target: "11-2021", value: 0.8},
+                {source: "13-2011", target: "11-3031", value: 0.9},
+                {source: "13-2011", target: "13-1111", value: 0.6},
+                {source: "11-3031", target: "11-2021", value: 0.7},
+                {source: "13-1111", target: "11-2021", value: 0.6},
+                
+                // STEM internal links
+                {source: "15-1256", target: "15-1211", value: 0.9},
+                {source: "15-1256", target: "17-2071", value: 0.7},
+                {source: "15-1211", target: "17-2051", value: 0.5},
+                {source: "15-1211", target: "17-2071", value: 0.6},
+                {source: "17-2051", target: "17-2071", value: 0.7},
+                {source: "17-2051", target: "19-2031", value: 0.5},
+                {source: "17-2071", target: "19-2031", value: 0.6},
+                
+                // Healthcare internal links
+                {source: "29-1141", target: "29-1123", value: 0.6},
+                {source: "29-1141", target: "29-1051", value: 0.5},
+                {source: "29-1141", target: "29-1071", value: 0.7},
+                {source: "29-1141", target: "31-1131", value: 0.8},
+                {source: "29-1123", target: "29-1071", value: 0.6},
+                {source: "29-1051", target: "29-1071", value: 0.5},
+                {source: "29-1071", target: "31-1131", value: 0.5},
+                
+                // Education & Social Services internal links
+                {source: "25-2021", target: "25-1099", value: 0.7},
+                {source: "25-2021", target: "21-1021", value: 0.6},
+                {source: "25-2021", target: "25-9045", value: 0.8},
+                {source: "25-1099", target: "21-1021", value: 0.5},
+                {source: "21-1021", target: "21-1011", value: 0.8},
+                {source: "21-1021", target: "25-9045", value: 0.5},
+                
+                // Service internal links
+                {source: "35-3031", target: "35-2014", value: 0.9},
+                {source: "33-3051", target: "33-2011", value: 0.7},
+                {source: "37-2011", target: "35-3031", value: 0.4},
+                
+                // Sales & Office internal links
+                {source: "41-2031", target: "41-2011", value: 0.8},
+                {source: "41-2031", target: "43-4051", value: 0.6},
+                {source: "43-9061", target: "43-6014", value: 0.7},
+                {source: "43-6014", target: "43-4051", value: 0.7},
+                {source: "43-9061", target: "43-4051", value: 0.6},
+                
+                // Production & Transportation internal links
+                {source: "53-3032", target: "53-7062", value: 0.5},
+                {source: "51-2098", target: "51-4121", value: 0.7},
+                {source: "51-2098", target: "51-9061", value: 0.8},
+                {source: "51-4121", target: "51-9061", value: 0.7},
+                
+                // Natural Resources & Construction internal links
+                {source: "47-2061", target: "47-2031", value: 0.8},
+                {source: "47-2061", target: "47-2111", value: 0.6},
+                {source: "47-2061", target: "47-2152", value: 0.6},
+                {source: "47-2031", target: "47-2111", value: 0.7},
+                {source: "47-2031", target: "47-2152", value: 0.7},
+                {source: "47-2111", target: "47-2152", value: 0.8},
+                {source: "45-2092", target: "47-2061", value: 0.4},
+                
+                // Cross-group links
+                {source: "11-1021", target: "15-1211", value: 0.5}, // Management to STEM
+                {source: "13-2011", target: "15-1211", value: 0.5}, // Business to STEM
+                {source: "11-3031", target: "13-2011", value: 0.8}, // Financial to Accounting
+                {source: "15-1256", target: "17-2071", value: 0.6}, // Software to Electrical
+                {source: "29-1141", target: "25-2021", value: 0.4}, // Nurses to Teachers
+                {source: "29-1071", target: "29-1051", value: 0.6}, // PA to Pharmacist
+                {source: "21-1021", target: "21-1011", value: 0.7}, // Social Workers to Counselors
+                {source: "33-3051", target: "33-2011", value: 0.7}, // Police to Firefighters
+                {source: "41-2031", target: "41-2011", value: 0.8}, // Sales to Cashiers
+                {source: "43-9061", target: "43-6014", value: 0.7}, // Clerks to Assistants
+                {source: "51-4121", target: "47-2111", value: 0.6}, // Welders to Electricians
+                {source: "47-2031", target: "47-2152", value: 0.7}  // Carpenters to Plumbers
+            ];
+            
+            // Color scale for groups
+            const colorScale = {
+                "Management & Business": "#4e79a7",
+                "STEM": "#f28e2c",
+                "Healthcare": "#e15759",
+                "Education & Social Services": "#76b7b2",
+                "Service": "#59a14f",
+                "Sales & Office": "#edc949",
+                "Production & Transportation": "#af7aa1",
+                "Natural Resources & Construction": "#ff9da7"
+            };
+            
+            // Set up SVG
+            const container = document.getElementById('jobSpace');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            const svg = d3.select('#jobSpace')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // Create tooltip
+            const tooltip = d3.select('#jobSpace')
+                .append('div')
+                .attr('class', 'tooltip')
+                .style('opacity', 0);
+            
+            // Create zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on('zoom', zoomed);
+            
+            svg.call(zoom);
+            
+            // Create a group for all elements that will be zoomed
+            const g = svg.append('g');
+            
+            // Create force simulation
+            const simulation = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(d => 200 - d.value * 100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(d => Math.sqrt(d.employment) / 40 + 10));
+            
+            // Draw links
+            const link = g.append('g')
+                .selectAll('line')
+                .data(links)
+                .join('line')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6)
+                .attr('stroke-width', d => d.value * 2);
+            
+            // Draw nodes
+            const node = g.append('g')
+                .selectAll('circle')
+                .data(nodes)
+                .join('circle')
+                .attr('r', d => Math.sqrt(d.employment) / 40 + 5)
+                .attr('fill', d => colorScale[d.group])
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 1.5)
+                .on('mouseover', function(event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style('opacity', .9);
+                    tooltip.html(`<strong>${d.name}</strong><br>
+                                 Employment: ${d.employment.toLocaleString()}<br>
+                                 Complexity: ${d.complexity.toFixed(2)}<br>
+                                 Group: ${d.group}`)
+                        .style('left', (event.pageX - container.offsetLeft + 10) + 'px')
+                        .style('top', (event.pageY - container.offsetTop - 28) + 'px');
+                    
+                    // Highlight connected nodes
+                    const connectedNodes = links
+                        .filter(l => l.source.id === d.id || l.target.id === d.id)
+                        .map(l => l.source.id === d.id ? l.target.id : l.source.id);
+                    
+                    node.attr('opacity', n => n.id === d.id || connectedNodes.includes(n.id) ? 1 : 0.3);
+                    link.attr('opacity', l => l.source.id === d.id || l.target.id === d.id ? 1 : 0.1);
+                    label.attr('opacity', n => n.id === d.id || connectedNodes.includes(n.id) ? 1 : 0.3);
+                })
+                .on('mouseout', function() {
+                    tooltip.transition()
+                        .duration(500)
+                        .style('opacity', 0);
+                    
+                    // Reset opacity
+                    node.attr('opacity', 1);
+                    link.attr('opacity', 0.6);
+                    label.attr('opacity', d => d.employment > 1000000 ? 1 : 0);
+                })
+                .call(drag(simulation));
+            
+            // Add labels for larger nodes
+            const label = g.append('g')
+                .selectAll('text')
+                .data(nodes)
+                .join('text')
+                .attr('class', 'node-label')
+                .attr('text-anchor', 'middle')
+                .attr('dy', d => -Math.sqrt(d.employment) / 40 - 8)
+                .text(d => d.name.length > 20 ? d.name.substring(0, 20) + '...' : d.name)
+                .attr('opacity', d => d.employment > 1000000 ? 1 : 0); // Only show labels for large nodes initially
+            
+            // Update positions on each tick
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+                
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+            
+            // Drag behavior
+            function drag(simulation) {
+                function dragstarted(event) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    event.subject.fx = event.subject.x;
+                    event.subject.fy = event.subject.y;
+                }
+                
+                function dragged(event) {
+                    event.subject.fx = event.x;
+                    event.subject.fy = event.y;
+                }
+                
+                function dragended(event) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    event.subject.fx = null;
+                    event.subject.fy = null;
+                }
+                
+                return d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended);
+            }
+            
+            // Zoom function
+            function zoomed(event) {
+                g.attr('transform', event.transform);
+                
+                // Show more labels when zoomed in
+                const scale = event.transform.k;
+                label.attr('opacity', d => {
+                    if (scale > 2) return 1; // Show all labels when zoomed in a lot
+                    if (scale > 1.5) return d.employment > 500000 ? 1 : 0; // Show more labels when zoomed in somewhat
+                    return d.employment > 1000000 ? 1 : 0; // Show only large node labels at normal zoom
+                });
+            }
+            
+            // Set up zoom controls
+            document.getElementById('zoomIn').addEventListener('click', function() {
+                svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+            });
+            
+            document.getElementById('zoomOut').addEventListener('click', function() {
+                svg.transition().duration(300).call(zoom.scaleBy, 0.75);
+            });
+            
+            document.getElementById('reset').addEventListener('click', function() {
+                svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+            });
+        </script>
+    </body>
+    </html>
+    

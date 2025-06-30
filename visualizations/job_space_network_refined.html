@@ -1,0 +1,526 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Job Space Network</title>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            .control-panel {
+                padding: 20px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .viz-container {
+                height: 800px;
+                width: 100%;
+                border-radius: 8px;
+                overflow: hidden;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                background-color: #f9f9f9;
+                position: relative;
+            }
+            .legend-container {
+                margin-top: 30px;
+                padding: 20px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .legend-color {
+                width: 20px;
+                height: 20px;
+                margin-right: 10px;
+                border-radius: 3px;
+            }
+            h1, h4, h5 {
+                color: #333;
+            }
+            .btn-primary {
+                background-color: #3f4f75;
+                border-color: #3f4f75;
+            }
+            .btn-primary:hover {
+                background-color: #2d3b59;
+                border-color: #2d3b59;
+            }
+            .form-select:focus, .btn:focus {
+                box-shadow: 0 0 0 0.25rem rgba(63, 79, 117, 0.25);
+            }
+            .tooltip {
+                position: absolute;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                pointer-events: none;
+                font-size: 12px;
+                z-index: 1000;
+                max-width: 300px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+            .node-label {
+                font-size: 10px;
+                pointer-events: none;
+                text-shadow: 
+                    -1px -1px 0 #fff,
+                    1px -1px 0 #fff,
+                    -1px 1px 0 #fff,
+                    1px 1px 0 #fff;
+            }
+            .controls {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255,255,255,0.8);
+                padding: 10px;
+                border-radius: 4px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                z-index: 100;
+            }
+            .controls button {
+                margin: 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid py-4">
+            <h1 class="mb-4">Job Space Network</h1>
+            <p>This network visualization shows how different occupations are connected based on skill similarity, similar to the Product Space in the Harvard Atlas of Economic Complexity. Occupations that require similar skills are positioned closer together, with node size representing employment and color representing complexity.</p>
+            
+            <div class="control-panel">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="sizeBySelect" class="form-label fw-bold">Node Size By:</label>
+                        <select id="sizeBySelect" class="form-select">
+                            <option value="employment">Employment</option>
+                            <option value="total_compensation">Total Compensation</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="colorBySelect" class="form-label fw-bold">Node Color By:</label>
+                        <select id="colorBySelect" class="form-select">
+                            <option value="complexity">Job Complexity</option>
+                            <option value="price">Job Price</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="updateButton" class="form-label">&nbsp;</label>
+                        <button id="updateButton" class="btn btn-primary w-100">Update Visualization</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="viz-container" id="jobSpaceContainer">
+                <div class="controls">
+                    <button id="zoomIn" class="btn btn-sm btn-light">+</button>
+                    <button id="zoomOut" class="btn btn-sm btn-light">-</button>
+                    <button id="resetZoom" class="btn btn-sm btn-light">Reset</button>
+                </div>
+            </div>
+            
+            <div class="legend-container mt-4">
+                <h4 class="mb-3">Legend</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Node Size</h5>
+                        <p>Node size represents the number of people employed in each occupation.</p>
+                        <div class="legend-item">
+                            <div style="width: 10px; height: 10px; background-color: #555; border-radius: 50%; margin-right: 10px;"></div>
+                            <div>Small: &lt; 50,000 employees</div>
+                        </div>
+                        <div class="legend-item">
+                            <div style="width: 20px; height: 20px; background-color: #555; border-radius: 50%; margin-right: 10px;"></div>
+                            <div>Medium: 50,000 - 500,000 employees</div>
+                        </div>
+                        <div class="legend-item">
+                            <div style="width: 30px; height: 30px; background-color: #555; border-radius: 50%; margin-right: 10px;"></div>
+                            <div>Large: &gt; 500,000 employees</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Node Color</h5>
+                        <p>Node color represents job complexity or price index.</p>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #053061;"></div>
+                            <div>High complexity/price (≥ 2.0)</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #2166ac;"></div>
+                            <div>Above average (1.5 - 2.0)</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #4393c3;"></div>
+                            <div>Slightly above average (1.0 - 1.5)</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #92c5de;"></div>
+                            <div>Slightly below average (0.7 - 1.0)</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #d1e5f0;"></div>
+                            <div>Below average (0.4 - 0.7)</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f7f7f7;"></div>
+                            <div>Low complexity/price (< 0.4)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>Connections</h5>
+                        <p>Lines between occupations indicate they require similar skills. Thicker lines represent stronger skill similarity.</p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h5>Occupation Groups</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #1f77b4;"></div>
+                                    <div>Management</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #ff7f0e;"></div>
+                                    <div>Business & Financial</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #2ca02c;"></div>
+                                    <div>Computer & Mathematical</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #d62728;"></div>
+                                    <div>Architecture & Engineering</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #9467bd;"></div>
+                                    <div>Healthcare</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #8c564b;"></div>
+                                    <div>Education & Social Services</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #e377c2;"></div>
+                                    <div>Service Occupations</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #7f7f7f;"></div>
+                                    <div>Sales & Office</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #bcbd22;"></div>
+                                    <div>Natural Resources & Construction</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #17becf;"></div>
+                                    <div>Production</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #aec7e8;"></div>
+                                    <div>Transportation & Material Moving</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Job data
+            const jobData = [{"soc_code": "51-2060", "occupation_title": "U.S.", "job_complexity_index": 1.335571595510109, "job_price_index": 1.1011549183592195, "annual_mean_wage": 82950, "employment": 38, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 3152100}, {"soc_code": "51-2061", "occupation_title": "U.S.", "job_complexity_index": 1.239709698194777, "job_price_index": 1.416421080578787, "annual_mean_wage": 106699, "employment": 38, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 4054562}, {"soc_code": "29-1024", "occupation_title": "U.S.", "job_complexity_index": 2.0214119921231424, "job_price_index": 1.2278242400106198, "annual_mean_wage": 92492, "employment": 36, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 3329712}, {"soc_code": "17-2020", "occupation_title": "U.S.", "job_complexity_index": 0.8190338598968916, "job_price_index": 0.9530864197530864, "annual_mean_wage": 71796, "employment": 33, "major_group": "17", "uber_category": "STEM", "major_group_name": "Architecture & Engineering", "detailed_category_code": "17", "detailed_category_name": "U.S.", "total_compensation": 2369268}, {"soc_code": "17-2021", "occupation_title": "U.S.", "job_complexity_index": 1.4792771661403976, "job_price_index": 1.1143900172574008, "annual_mean_wage": 83947, "employment": 33, "major_group": "17", "uber_category": "STEM", "major_group_name": "Architecture & Engineering", "detailed_category_code": "17", "detailed_category_name": "U.S.", "total_compensation": 2770251}, {"soc_code": "35-2013", "occupation_title": "U.S.", "job_complexity_index": 1.1869980621432392, "job_price_index": 1.0782424001061994, "annual_mean_wage": 81224, "employment": 32, "major_group": "35", "uber_category": "Service", "major_group_name": "Food Preparation & Serving Related", "detailed_category_code": "35", "detailed_category_name": "U.S.", "total_compensation": 2599168}, {"soc_code": "13-1074", "occupation_title": "U.S.", "job_complexity_index": 0.5436766406027007, "job_price_index": 0.7287269348201247, "annual_mean_wage": 54895, "employment": 28, "major_group": "13", "uber_category": "Management & Business", "major_group_name": "Business & Financial Operations", "detailed_category_code": "13", "detailed_category_name": "U.S.", "total_compensation": 1537060}, {"soc_code": "19-3032", "occupation_title": "U.S.", "job_complexity_index": 0.8066149985299206, "job_price_index": 0.7863401035444046, "annual_mean_wage": 59235, "employment": 24, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 1421640}, {"soc_code": "39-5091", "occupation_title": "U.S.", "job_complexity_index": 1.096343109282771, "job_price_index": 0.9001725740076995, "annual_mean_wage": 67810, "employment": 24, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 1627440}, {"soc_code": "29-1243", "occupation_title": "U.S.", "job_complexity_index": 1.8005969156155528, "job_price_index": 1.2460905349794238, "annual_mean_wage": 93868, "employment": 23, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 2158964}, {"soc_code": "51-7032", "occupation_title": "U.S.", "job_complexity_index": 0.6341203716875272, "job_price_index": 0.8221292977565379, "annual_mean_wage": 61931, "employment": 22, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 1362482}, {"soc_code": "27-2042", "occupation_title": "U.S.", "job_complexity_index": 0.9069664941271848, "job_price_index": 1.464502854108589, "annual_mean_wage": 110321, "employment": 20, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 2206420}, {"soc_code": "47-2053", "occupation_title": "U.S.", "job_complexity_index": 0.4507266088292908, "job_price_index": 0.641948758794637, "annual_mean_wage": 48358, "employment": 20, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 967160}, {"soc_code": "49-9061", "occupation_title": "U.S.", "job_complexity_index": 1.726272036133457, "job_price_index": 1.344763042612505, "annual_mean_wage": 101301, "employment": 20, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 2026020}, {"soc_code": "53-7031", "occupation_title": "U.S.", "job_complexity_index": 0.7882695422132747, "job_price_index": 0.6288729589804859, "annual_mean_wage": 47373, "employment": 19, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 900087}, {"soc_code": "53-7030", "occupation_title": "U.S.", "job_complexity_index": 1.5554001181108337, "job_price_index": 1.304712597902562, "annual_mean_wage": 98284, "employment": 19, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 1867396}, {"soc_code": "29-1291", "occupation_title": "U.S.", "job_complexity_index": 0.5652226366831944, "job_price_index": 0.5668525155980353, "annual_mean_wage": 42701, "employment": 19, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 811319}, {"soc_code": "29-1023", "occupation_title": "U.S.", "job_complexity_index": 0.8085717094017425, "job_price_index": 0.8145094915704235, "annual_mean_wage": 61357, "employment": 18, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 1104426}, {"soc_code": "45-2020", "occupation_title": "U.S.", "job_complexity_index": 0.3941005519198363, "job_price_index": 0.4481083233771405, "annual_mean_wage": 33756, "employment": 17, "major_group": "45", "uber_category": "Natural Resources & Construction", "major_group_name": "Farming, Fishing, & Forestry", "detailed_category_code": "45", "detailed_category_name": "U.S.", "total_compensation": 573852}, {"soc_code": "45-2021", "occupation_title": "U.S.", "job_complexity_index": 1.0552189831832677, "job_price_index": 1.494305057745918, "annual_mean_wage": 112566, "employment": 17, "major_group": "45", "uber_category": "Natural Resources & Construction", "major_group_name": "Farming, Fishing, & Forestry", "detailed_category_code": "45", "detailed_category_name": "U.S.", "total_compensation": 1913622}, {"soc_code": "29-1022", "occupation_title": "U.S.", "job_complexity_index": 1.291181145971774, "job_price_index": 0.8808973848400372, "annual_mean_wage": 66358, "employment": 15, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 995370}, {"soc_code": "47-5049", "occupation_title": "U.S.", "job_complexity_index": 0.9986518853885076, "job_price_index": 1.2486658701712463, "annual_mean_wage": 94062, "employment": 14, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 1316868}, {"soc_code": "27-2040", "occupation_title": "U.S.", "job_complexity_index": 0.7334330229314261, "job_price_index": 0.8163547059604407, "annual_mean_wage": 61496, "employment": 14, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 860944}, {"soc_code": "47-2142", "occupation_title": "U.S.", "job_complexity_index": 0.8957109947816633, "job_price_index": 1.0029868578255674, "annual_mean_wage": 75555, "employment": 13, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 982215}, {"soc_code": "41-9021", "occupation_title": "U.S.", "job_complexity_index": 1.1290590612530476, "job_price_index": 0.957055621930174, "annual_mean_wage": 72095, "employment": 13, "major_group": "41", "uber_category": "Sales & Office", "major_group_name": "Sales & Related", "detailed_category_code": "41", "detailed_category_name": "U.S.", "total_compensation": 937235}, {"soc_code": "49-9095", "occupation_title": "U.S.", "job_complexity_index": 1.5260733335899266, "job_price_index": 1.1198725607327755, "annual_mean_wage": 84360, "employment": 13, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 1096680}, {"soc_code": "47-2043", "occupation_title": "U.S.", "job_complexity_index": 0.8133697524435624, "job_price_index": 1.081720430107527, "annual_mean_wage": 81486, "employment": 12, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 977832}, {"soc_code": "49-9092", "occupation_title": "U.S.", "job_complexity_index": 0.6113245855522053, "job_price_index": 0.6273197929111908, "annual_mean_wage": 47256, "employment": 12, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 567072}, {"soc_code": "49-9064", "occupation_title": "U.S.", "job_complexity_index": 1.0426784733626175, "job_price_index": 1.218438868976503, "annual_mean_wage": 91785, "employment": 12, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 1101420}, {"soc_code": "51-7031", "occupation_title": "U.S.", "job_complexity_index": 1.233665967956295, "job_price_index": 1.3896986592327094, "annual_mean_wage": 104686, "employment": 12, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 1256232}, {"soc_code": "41-9012", "occupation_title": "U.S.", "job_complexity_index": 0.4193265562847336, "job_price_index": 0.973715651135006, "annual_mean_wage": 73350, "employment": 11, "major_group": "41", "uber_category": "Sales & Office", "major_group_name": "Sales & Related", "detailed_category_code": "41", "detailed_category_name": "U.S.", "total_compensation": 806850}, {"soc_code": "51-6051", "occupation_title": "U.S.", "job_complexity_index": 1.0702222995532398, "job_price_index": 1.251015531660693, "annual_mean_wage": 94239, "employment": 11, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 1036629}, {"soc_code": "41-9091", "occupation_title": "U.S.", "job_complexity_index": 1.251329719157527, "job_price_index": 1.3813221823974513, "annual_mean_wage": 104055, "employment": 11, "major_group": "41", "uber_category": "Sales & Office", "major_group_name": "Sales & Related", "detailed_category_code": "41", "detailed_category_name": "U.S.", "total_compensation": 1144605}, {"soc_code": "17-1012", "occupation_title": "U.S.", "job_complexity_index": 0.8281702659019522, "job_price_index": 0.6782556750298686, "annual_mean_wage": 51093, "employment": 11, "major_group": "17", "uber_category": "STEM", "major_group_name": "Architecture & Engineering", "detailed_category_code": "17", "detailed_category_name": "U.S.", "total_compensation": 562023}, {"soc_code": "49-9045", "occupation_title": "U.S.", "job_complexity_index": 1.140985220054204, "job_price_index": 1.1842426656046727, "annual_mean_wage": 89209, "employment": 11, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 981299}, {"soc_code": "33-2022", "occupation_title": "U.S.", "job_complexity_index": 1.2470018555250446, "job_price_index": 0.9605203770078322, "annual_mean_wage": 72356, "employment": 11, "major_group": "33", "uber_category": "Service", "major_group_name": "Protective Service", "detailed_category_code": "33", "detailed_category_name": "U.S.", "total_compensation": 795916}, {"soc_code": "29-1242", "occupation_title": "U.S.", "job_complexity_index": 1.3776498534886796, "job_price_index": 0.8868180007964954, "annual_mean_wage": 66804, "employment": 11, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 734844}, {"soc_code": "29-1213", "occupation_title": "U.S.", "job_complexity_index": 1.9330010429996072, "job_price_index": 1.3790521704500198, "annual_mean_wage": 103884, "employment": 11, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 1142724}, {"soc_code": "47-5030", "occupation_title": "U.S.", "job_complexity_index": 0.8986141610023222, "job_price_index": 0.7866587017124651, "annual_mean_wage": 59259, "employment": 11, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 651849}, {"soc_code": "47-5032", "occupation_title": "U.S.", "job_complexity_index": 0.6837903025860127, "job_price_index": 0.5068365856896323, "annual_mean_wage": 38180, "employment": 11, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 419980}, {"soc_code": "53-4099", "occupation_title": "U.S.", "job_complexity_index": 0.5607546841207025, "job_price_index": 0.6543342625779902, "annual_mean_wage": 49291, "employment": 10, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 492910}, {"soc_code": "53-4090", "occupation_title": "U.S.", "job_complexity_index": 1.122872962572529, "job_price_index": 1.043435550245586, "annual_mean_wage": 78602, "employment": 10, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 786020}, {"soc_code": "29-1217", "occupation_title": "U.S.", "job_complexity_index": 1.6913974588444356, "job_price_index": 1.1472720031859818, "annual_mean_wage": 86424, "employment": 10, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 864240}, {"soc_code": "39-5093", "occupation_title": "U.S.", "job_complexity_index": 0.8949159328130627, "job_price_index": 1.270622593920085, "annual_mean_wage": 95716, "employment": 10, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 957160}, {"soc_code": "27-2091", "occupation_title": "U.S.", "job_complexity_index": 0.3226764830042918, "job_price_index": 0.4632284614363467, "annual_mean_wage": 34895, "employment": 10, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 348950}, {"soc_code": "29-1249", "occupation_title": "U.S.", "job_complexity_index": 0.8489174099714288, "job_price_index": 0.7708880923934688, "annual_mean_wage": 58071, "employment": 10, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 580710}, {"soc_code": "47-3016", "occupation_title": "U.S.", "job_complexity_index": 0.6818598727708045, "job_price_index": 0.9759060135404222, "annual_mean_wage": 73515, "employment": 10, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 735150}, {"soc_code": "53-7071", "occupation_title": "U.S.", "job_complexity_index": 0.7379630860296417, "job_price_index": 0.925302004513474, "annual_mean_wage": 69703, "employment": 10, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 697030}, {"soc_code": "19-1011", "occupation_title": "U.S.", "job_complexity_index": 1.1096329339739606, "job_price_index": 0.7786937475109518, "annual_mean_wage": 58659, "employment": 10, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 586590}, {"soc_code": "29-1212", "occupation_title": "U.S.", "job_complexity_index": 1.3977982273798255, "job_price_index": 1.1650604009026948, "annual_mean_wage": 87764, "employment": 10, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 877640}, {"soc_code": "31-2012", "occupation_title": "U.S.", "job_complexity_index": 1.3042340736332143, "job_price_index": 1.5505774591796098, "annual_mean_wage": 116805, "employment": 10, "major_group": "31", "uber_category": "Healthcare", "major_group_name": "Healthcare Support", "detailed_category_code": "31", "detailed_category_name": "U.S.", "total_compensation": 1168050}, {"soc_code": "29-1029", "occupation_title": "U.S.", "job_complexity_index": 1.1733232934634452, "job_price_index": 1.3155183857692818, "annual_mean_wage": 99098, "employment": 10, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 990980}, {"soc_code": "43-4020", "occupation_title": "U.S.", "job_complexity_index": 0.7210113372884641, "job_price_index": 0.6863799283154122, "annual_mean_wage": 51705, "employment": 9, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 465345}, {"soc_code": "43-9080", "occupation_title": "U.S.", "job_complexity_index": 1.2221204843837916, "job_price_index": 1.2172441258462765, "annual_mean_wage": 91695, "employment": 9, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 825255}, {"soc_code": "51-7030", "occupation_title": "U.S.", "job_complexity_index": 0.3714431848468283, "job_price_index": 0.4561662020443382, "annual_mean_wage": 34363, "employment": 9, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 309267}, {"soc_code": "39-3021", "occupation_title": "U.S.", "job_complexity_index": 0.6459803675811608, "job_price_index": 0.7274923669188902, "annual_mean_wage": 54802, "employment": 9, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 493218}, {"soc_code": "43-4021", "occupation_title": "U.S.", "job_complexity_index": 0.5230004941387509, "job_price_index": 0.8541085888756139, "annual_mean_wage": 64340, "employment": 9, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 579060}, {"soc_code": "27-4099", "occupation_title": "U.S.", "job_complexity_index": 0.8004379287434792, "job_price_index": 0.6472056285676357, "annual_mean_wage": 48754, "employment": 9, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 438786}, {"soc_code": "27-4090", "occupation_title": "U.S.", "job_complexity_index": 1.804043074486628, "job_price_index": 1.586353378468074, "annual_mean_wage": 119500, "employment": 9, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 1075500}, {"soc_code": "43-2099", "occupation_title": "U.S.", "job_complexity_index": 0.3405200825480153, "job_price_index": 0.5365325899376079, "annual_mean_wage": 40417, "employment": 9, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 363753}, {"soc_code": "43-2090", "occupation_title": "U.S.", "job_complexity_index": 1.4316375608865997, "job_price_index": 1.5044603743528475, "annual_mean_wage": 113331, "employment": 9, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 1019979}, {"soc_code": "29-1222", "occupation_title": "U.S.", "job_complexity_index": 0.8845105016434405, "job_price_index": 0.6439399973450153, "annual_mean_wage": 48508, "employment": 9, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 436572}, {"soc_code": "43-9081", "occupation_title": "U.S.", "job_complexity_index": 1.0024633874168467, "job_price_index": 1.5651002256737023, "annual_mean_wage": 117899, "employment": 9, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 1061091}, {"soc_code": "27-1029", "occupation_title": "U.S.", "job_complexity_index": 0.7085193131016042, "job_price_index": 0.6943714323642639, "annual_mean_wage": 52307, "employment": 9, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 470763}, {"soc_code": "27-2032", "occupation_title": "U.S.", "job_complexity_index": 1.3635057774251562, "job_price_index": 1.3795831673967875, "annual_mean_wage": 103924, "employment": 9, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 935316}, {"soc_code": "27-2031", "occupation_title": "U.S.", "job_complexity_index": 0.623630200283072, "job_price_index": 1.1196601619540687, "annual_mean_wage": 84344, "employment": 9, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 759096}, {"soc_code": "45-4021", "occupation_title": "U.S.", "job_complexity_index": 0.6187196242003122, "job_price_index": 0.934302402761184, "annual_mean_wage": 70381, "employment": 9, "major_group": "45", "uber_category": "Natural Resources & Construction", "major_group_name": "Farming, Fishing, & Forestry", "detailed_category_code": "45", "detailed_category_name": "U.S.", "total_compensation": 633429}, {"soc_code": "21-2099", "occupation_title": "U.S.", "job_complexity_index": 1.670863246851084, "job_price_index": 1.4592061595645824, "annual_mean_wage": 109922, "employment": 9, "major_group": "21", "uber_category": "Education & Social Services", "major_group_name": "Community & Social Service", "detailed_category_code": "21", "detailed_category_name": "U.S.", "total_compensation": 989298}, {"soc_code": "21-2090", "occupation_title": "U.S.", "job_complexity_index": 0.6802655947601061, "job_price_index": 0.5492765166600292, "annual_mean_wage": 41377, "employment": 9, "major_group": "21", "uber_category": "Education & Social Services", "major_group_name": "Community & Social Service", "detailed_category_code": "21", "detailed_category_name": "U.S.", "total_compensation": 372393}, {"soc_code": "47-2072", "occupation_title": "U.S.", "job_complexity_index": 0.9556961440714192, "job_price_index": 1.1036240541616886, "annual_mean_wage": 83136, "employment": 9, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 748224}, {"soc_code": "39-3020", "occupation_title": "U.S.", "job_complexity_index": 0.4461340233484458, "job_price_index": 0.4843754148413646, "annual_mean_wage": 36488, "employment": 9, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 328392}, {"soc_code": "47-3014", "occupation_title": "U.S.", "job_complexity_index": 0.7240532337786955, "job_price_index": 0.9066640116819328, "annual_mean_wage": 68299, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 546392}, {"soc_code": "47-5090", "occupation_title": "U.S.", "job_complexity_index": 0.6802103454990487, "job_price_index": 0.742094782954998, "annual_mean_wage": 55902, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 447216}, {"soc_code": "49-9080", "occupation_title": "U.S.", "job_complexity_index": 1.3215829396291068, "job_price_index": 1.3261250497809638, "annual_mean_wage": 99897, "employment": 8, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 799176}, {"soc_code": "53-5022", "occupation_title": "U.S.", "job_complexity_index": 1.2909800049287468, "job_price_index": 0.9934952874020976, "annual_mean_wage": 74840, "employment": 8, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 598720}, {"soc_code": "47-5099", "occupation_title": "U.S.", "job_complexity_index": 1.1114428170264172, "job_price_index": 0.9308110978361874, "annual_mean_wage": 70118, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 560944}, {"soc_code": "51-6042", "occupation_title": "U.S.", "job_complexity_index": 0.432070251024475, "job_price_index": 0.6183990442054959, "annual_mean_wage": 46584, "employment": 8, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 372672}, {"soc_code": "47-5050", "occupation_title": "U.S.", "job_complexity_index": 0.7390889140027169, "job_price_index": 0.723828487986194, "annual_mean_wage": 54526, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 436208}, {"soc_code": "19-3020", "occupation_title": "U.S.", "job_complexity_index": 0.6517960156533019, "job_price_index": 0.6703703703703704, "annual_mean_wage": 50499, "employment": 8, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 403992}, {"soc_code": "19-4043", "occupation_title": "U.S.", "job_complexity_index": 0.7887436616785969, "job_price_index": 0.6995884773662552, "annual_mean_wage": 52700, "employment": 8, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 421600}, {"soc_code": "51-6092", "occupation_title": "U.S.", "job_complexity_index": 1.7628835544798285, "job_price_index": 1.4298154785609982, "annual_mean_wage": 107708, "employment": 8, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 861664}, {"soc_code": "51-6061", "occupation_title": "U.S.", "job_complexity_index": 0.6952654683806622, "job_price_index": 0.5956856498075136, "annual_mean_wage": 44873, "employment": 8, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 358984}, {"soc_code": "39-5011", "occupation_title": "U.S.", "job_complexity_index": 0.7820879403154768, "job_price_index": 1.2887163148811895, "annual_mean_wage": 97079, "employment": 8, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 776632}, {"soc_code": "19-2011", "occupation_title": "U.S.", "job_complexity_index": 1.2158216333980871, "job_price_index": 1.3856232576662684, "annual_mean_wage": 104379, "employment": 8, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 835032}, {"soc_code": "19-3093", "occupation_title": "U.S.", "job_complexity_index": 0.7011769676916406, "job_price_index": 0.9452011150935882, "annual_mean_wage": 71202, "employment": 8, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 569616}, {"soc_code": "53-7073", "occupation_title": "U.S.", "job_complexity_index": 0.999075834502126, "job_price_index": 1.3700915969733174, "annual_mean_wage": 103209, "employment": 8, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 825672}, {"soc_code": "47-5051", "occupation_title": "U.S.", "job_complexity_index": 0.9485910165050232, "job_price_index": 1.4517058276914907, "annual_mean_wage": 109357, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 874856}, {"soc_code": "27-1012", "occupation_title": "U.S.", "job_complexity_index": 0.3727833919712907, "job_price_index": 0.4748705694942254, "annual_mean_wage": 35772, "employment": 8, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 286176}, {"soc_code": "29-1241", "occupation_title": "U.S.", "job_complexity_index": 1.4725143319973344, "job_price_index": 0.945532988185318, "annual_mean_wage": 71227, "employment": 8, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 569816}, {"soc_code": "23-1022", "occupation_title": "U.S.", "job_complexity_index": 0.5999043553872925, "job_price_index": 0.4860082304526749, "annual_mean_wage": 36611, "employment": 8, "major_group": "23", "uber_category": "Education & Social Services", "major_group_name": "Legal", "detailed_category_code": "23", "detailed_category_name": "U.S.", "total_compensation": 292888}, {"soc_code": "47-5012", "occupation_title": "U.S.", "job_complexity_index": 1.603914101306651, "job_price_index": 1.457692818266295, "annual_mean_wage": 109808, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 878464}, {"soc_code": "47-2170", "occupation_title": "U.S.", "job_complexity_index": 0.9274502240956136, "job_price_index": 1.2843886897650338, "annual_mean_wage": 96753, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 774024}, {"soc_code": "49-9081", "occupation_title": "U.S.", "job_complexity_index": 0.8944175045303205, "job_price_index": 0.8984202840833665, "annual_mean_wage": 67678, "employment": 8, "major_group": "49", "uber_category": "Production & Transportation", "major_group_name": "Installation, Maintenance, & Repair", "detailed_category_code": "49", "detailed_category_name": "U.S.", "total_compensation": 541424}, {"soc_code": "47-2171", "occupation_title": "U.S.", "job_complexity_index": 1.2697897970361949, "job_price_index": 1.222076198061861, "annual_mean_wage": 92059, "employment": 8, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 736472}, {"soc_code": "51-4062", "occupation_title": "U.S.", "job_complexity_index": 1.1771963871811382, "job_price_index": 1.3735032523562989, "annual_mean_wage": 103466, "employment": 8, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 827728}, {"soc_code": "19-3022", "occupation_title": "U.S.", "job_complexity_index": 0.7618563856469721, "job_price_index": 0.7293774060799151, "annual_mean_wage": 54944, "employment": 8, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 439552}, {"soc_code": "53-7120", "occupation_title": "U.S.", "job_complexity_index": 1.223020459249771, "job_price_index": 1.2146953405017922, "annual_mean_wage": 91503, "employment": 7, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 640521}, {"soc_code": "53-7121", "occupation_title": "U.S.", "job_complexity_index": 0.8521452451661239, "job_price_index": 0.9543740873489978, "annual_mean_wage": 71893, "employment": 7, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 503251}, {"soc_code": "43-9031", "occupation_title": "U.S.", "job_complexity_index": 1.3433162199574928, "job_price_index": 1.1033851055356432, "annual_mean_wage": 83118, "employment": 7, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 581826}, {"soc_code": "53-7040", "occupation_title": "U.S.", "job_complexity_index": 1.061561801440882, "job_price_index": 1.1069295101553167, "annual_mean_wage": 83385, "employment": 7, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 583695}, {"soc_code": "53-3054", "occupation_title": "U.S.", "job_complexity_index": 0.6978670412026973, "job_price_index": 0.7322315146687907, "annual_mean_wage": 55159, "employment": 7, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 386113}, {"soc_code": "43-9030", "occupation_title": "U.S.", "job_complexity_index": 0.5083250139057931, "job_price_index": 0.5827558741537237, "annual_mean_wage": 43899, "employment": 7, "major_group": "43", "uber_category": "Sales & Office", "major_group_name": "Office & Administrative Support", "detailed_category_code": "43", "detailed_category_name": "U.S.", "total_compensation": 307293}, {"soc_code": "27-1019", "occupation_title": "U.S.", "job_complexity_index": 1.7422060708645415, "job_price_index": 1.5735563520509757, "annual_mean_wage": 118536, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 829752}, {"soc_code": "27-1014", "occupation_title": "U.S.", "job_complexity_index": 0.4617801392384233, "job_price_index": 0.6003053232443913, "annual_mean_wage": 45221, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 316547}, {"soc_code": "27-1013", "occupation_title": "U.S.", "job_complexity_index": 0.9397097068137904, "job_price_index": 1.046581707155184, "annual_mean_wage": 78839, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 551873}, {"soc_code": "27-1022", "occupation_title": "U.S.", "job_complexity_index": 1.80608098871856, "job_price_index": 1.3784813487322447, "annual_mean_wage": 103841, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 726887}, {"soc_code": "27-2021", "occupation_title": "U.S.", "job_complexity_index": 1.410602244399543, "job_price_index": 1.5662285941855834, "annual_mean_wage": 117984, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 825888}, {"soc_code": "19-3041", "occupation_title": "U.S.", "job_complexity_index": 1.2295614455369963, "job_price_index": 1.1563520509757068, "annual_mean_wage": 87108, "employment": 7, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 609756}, {"soc_code": "19-3040", "occupation_title": "U.S.", "job_complexity_index": 0.8735923357923521, "job_price_index": 0.8779105270144697, "annual_mean_wage": 66133, "employment": 7, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 462931}, {"soc_code": "27-2030", "occupation_title": "U.S.", "job_complexity_index": 1.7513012953701876, "job_price_index": 1.5550643833797957, "annual_mean_wage": 117143, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 820001}, {"soc_code": "51-4061", "occupation_title": "U.S.", "job_complexity_index": 0.4501821110592878, "job_price_index": 0.4342094782954998, "annual_mean_wage": 32709, "employment": 7, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 228963}, {"soc_code": "35-2019", "occupation_title": "U.S.", "job_complexity_index": 0.6663270067592689, "job_price_index": 0.7173105004646223, "annual_mean_wage": 54035, "employment": 7, "major_group": "35", "uber_category": "Service", "major_group_name": "Food Preparation & Serving Related", "detailed_category_code": "35", "detailed_category_name": "U.S.", "total_compensation": 378245}, {"soc_code": "37-2019", "occupation_title": "U.S.", "job_complexity_index": 1.1310900350942727, "job_price_index": 1.588464091331475, "annual_mean_wage": 119659, "employment": 7, "major_group": "37", "uber_category": "Service", "major_group_name": "Building & Grounds Cleaning & Maintenance", "detailed_category_code": "37", "detailed_category_name": "U.S.", "total_compensation": 837613}, {"soc_code": "45-2099", "occupation_title": "U.S.", "job_complexity_index": 0.9626958728215652, "job_price_index": 1.0098898181335458, "annual_mean_wage": 76075, "employment": 7, "major_group": "45", "uber_category": "Natural Resources & Construction", "major_group_name": "Farming, Fishing, & Forestry", "detailed_category_code": "45", "detailed_category_name": "U.S.", "total_compensation": 532525}, {"soc_code": "29-2092", "occupation_title": "U.S.", "job_complexity_index": 1.8085473292403311, "job_price_index": 1.401818664542679, "annual_mean_wage": 105599, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 739193}, {"soc_code": "29-9092", "occupation_title": "U.S.", "job_complexity_index": 0.8462667550322645, "job_price_index": 0.6618611442984202, "annual_mean_wage": 49858, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 349006}, {"soc_code": "29-2036", "occupation_title": "U.S.", "job_complexity_index": 0.650233346543534, "job_price_index": 0.4230319925660427, "annual_mean_wage": 31867, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 223069}, {"soc_code": "47-2082", "occupation_title": "U.S.", "job_complexity_index": 0.4678370518058442, "job_price_index": 0.872242134607726, "annual_mean_wage": 65706, "employment": 7, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 459942}, {"soc_code": "29-1221", "occupation_title": "U.S.", "job_complexity_index": 1.6501117492240436, "job_price_index": 1.5498871631488118, "annual_mean_wage": 116753, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 817271}, {"soc_code": "53-7041", "occupation_title": "U.S.", "job_complexity_index": 1.29392832710504, "job_price_index": 1.147072879330944, "annual_mean_wage": 86409, "employment": 7, "major_group": "53", "uber_category": "Production & Transportation", "major_group_name": "Transportation & Material Moving", "detailed_category_code": "53", "detailed_category_name": "U.S.", "total_compensation": 604863}, {"soc_code": "29-1211", "occupation_title": "U.S.", "job_complexity_index": 2.2503502828856368, "job_price_index": 1.546873755475906, "annual_mean_wage": 116526, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 815682}, {"soc_code": "45-4029", "occupation_title": "U.S.", "job_complexity_index": 0.6505177230139743, "job_price_index": 0.8879330943847072, "annual_mean_wage": 66888, "employment": 7, "major_group": "45", "uber_category": "Natural Resources & Construction", "major_group_name": "Farming, Fishing, & Forestry", "detailed_category_code": "45", "detailed_category_name": "U.S.", "total_compensation": 468216}, {"soc_code": "37-3019", "occupation_title": "U.S.", "job_complexity_index": 1.0946151484360107, "job_price_index": 1.1524757732643038, "annual_mean_wage": 86816, "employment": 7, "major_group": "37", "uber_category": "Service", "major_group_name": "Building & Grounds Cleaning & Maintenance", "detailed_category_code": "37", "detailed_category_name": "U.S.", "total_compensation": 607712}, {"soc_code": "29-1224", "occupation_title": "U.S.", "job_complexity_index": 1.5058934797117536, "job_price_index": 0.9633744855967078, "annual_mean_wage": 72571, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 507997}, {"soc_code": "29-1081", "occupation_title": "U.S.", "job_complexity_index": 0.6826341824815939, "job_price_index": 0.434222753219169, "annual_mean_wage": 32710, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 228970}, {"soc_code": "29-1080", "occupation_title": "U.S.", "job_complexity_index": 0.8916042699213972, "job_price_index": 1.0725474578521172, "annual_mean_wage": 80795, "employment": 7, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 565565}, {"soc_code": "27-4014", "occupation_title": "U.S.", "job_complexity_index": 0.9168519308986453, "job_price_index": 0.9288464091331476, "annual_mean_wage": 69970, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 489790}, {"soc_code": "19-4044", "occupation_title": "U.S.", "job_complexity_index": 1.4541174177775231, "job_price_index": 1.3909730519049517, "annual_mean_wage": 104782, "employment": 7, "major_group": "19", "uber_category": "STEM", "major_group_name": "Life, Physical, & Social Science", "detailed_category_code": "19", "detailed_category_name": "U.S.", "total_compensation": 733474}, {"soc_code": "27-3099", "occupation_title": "U.S.", "job_complexity_index": 0.5796230391317507, "job_price_index": 0.7186512677552104, "annual_mean_wage": 54136, "employment": 7, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 378952}, {"soc_code": "39-3099", "occupation_title": "U.S.", "job_complexity_index": 0.7084374979768845, "job_price_index": 0.9185848931368644, "annual_mean_wage": 69197, "employment": 7, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 484379}, {"soc_code": "17-2151", "occupation_title": "U.S.", "job_complexity_index": 1.3976360661110685, "job_price_index": 1.237939731846542, "annual_mean_wage": 93254, "employment": 7, "major_group": "17", "uber_category": "STEM", "major_group_name": "Architecture & Engineering", "detailed_category_code": "17", "detailed_category_name": "U.S.", "total_compensation": 652778}, {"soc_code": "13-1032", "occupation_title": "U.S.", "job_complexity_index": 1.156203678835455, "job_price_index": 1.455728129563255, "annual_mean_wage": 109660, "employment": 7, "major_group": "13", "uber_category": "Management & Business", "major_group_name": "Business & Financial Operations", "detailed_category_code": "13", "detailed_category_name": "U.S.", "total_compensation": 767620}, {"soc_code": "17-2150", "occupation_title": "U.S.", "job_complexity_index": 2.150270161725507, "job_price_index": 1.3775521040754015, "annual_mean_wage": 103771, "employment": 7, "major_group": "17", "uber_category": "STEM", "major_group_name": "Architecture & Engineering", "detailed_category_code": "17", "detailed_category_name": "U.S.", "total_compensation": 726397}, {"soc_code": "47-3012", "occupation_title": "U.S.", "job_complexity_index": 0.4346559601824175, "job_price_index": 0.4942254082039028, "annual_mean_wage": 37230, "employment": 7, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 260610}, {"soc_code": "47-4021", "occupation_title": "U.S.", "job_complexity_index": 2.000148352112376, "job_price_index": 1.5622859418558344, "annual_mean_wage": 117687, "employment": 6, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 706122}, {"soc_code": "47-4030", "occupation_title": "U.S.", "job_complexity_index": 1.09540071338999, "job_price_index": 1.024120536306916, "annual_mean_wage": 77147, "employment": 6, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 462882}, {"soc_code": "15-2090", "occupation_title": "U.S.", "job_complexity_index": 1.5688252875396071, "job_price_index": 1.2090269480950484, "annual_mean_wage": 91076, "employment": 6, "major_group": "15", "uber_category": "STEM", "major_group_name": "Computer & Mathematical", "detailed_category_code": "15", "detailed_category_name": "U.S.", "total_compensation": 546456}, {"soc_code": "15-2099", "occupation_title": "U.S.", "job_complexity_index": 0.4308487681031586, "job_price_index": 0.4188636665339174, "annual_mean_wage": 31553, "employment": 6, "major_group": "15", "uber_category": "STEM", "major_group_name": "Computer & Mathematical", "detailed_category_code": "15", "detailed_category_name": "U.S.", "total_compensation": 189318}, {"soc_code": "47-4020", "occupation_title": "U.S.", "job_complexity_index": 1.4987696824584498, "job_price_index": 1.5472587282623125, "annual_mean_wage": 116555, "employment": 6, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 699330}, {"soc_code": "39-3093", "occupation_title": "U.S.", "job_complexity_index": 0.6821029429363328, "job_price_index": 1.0466879065445374, "annual_mean_wage": 78847, "employment": 6, "major_group": "39", "uber_category": "Service", "major_group_name": "Personal Care & Service", "detailed_category_code": "39", "detailed_category_name": "U.S.", "total_compensation": 473082}, {"soc_code": "47-2022", "occupation_title": "U.S.", "job_complexity_index": 1.261647589853412, "job_price_index": 1.4539227399442454, "annual_mean_wage": 109524, "employment": 6, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 657144}, {"soc_code": "47-2041", "occupation_title": "U.S.", "job_complexity_index": 0.8707550046169722, "job_price_index": 1.1596973317403425, "annual_mean_wage": 87360, "employment": 6, "major_group": "47", "uber_category": "Natural Resources & Construction", "major_group_name": "Construction & Extraction", "detailed_category_code": "47", "detailed_category_name": "U.S.", "total_compensation": 524160}, {"soc_code": "27-4015", "occupation_title": "U.S.", "job_complexity_index": 1.084132840930417, "job_price_index": 1.356989247311828, "annual_mean_wage": 102222, "employment": 6, "major_group": "27", "uber_category": "Education & Social Services", "major_group_name": "Arts, Design, Entertainment, Sports, & Media", "detailed_category_code": "27", "detailed_category_name": "U.S.", "total_compensation": 613332}, {"soc_code": "29-1124", "occupation_title": "U.S.", "job_complexity_index": 2.2320911688915346, "job_price_index": 1.5823974512146557, "annual_mean_wage": 119202, "employment": 6, "major_group": "29", "uber_category": "Healthcare", "major_group_name": "Healthcare Practitioners & Technical", "detailed_category_code": "29", "detailed_category_name": "U.S.", "total_compensation": 715212}, {"soc_code": "51-7090", "occupation_title": "U.S.", "job_complexity_index": 1.3387471828284587, "job_price_index": 1.120589406610912, "annual_mean_wage": 84414, "employment": 6, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 506484}, {"soc_code": "13-1011", "occupation_title": "U.S.", "job_complexity_index": 0.7134818405940901, "job_price_index": 0.6267622461170849, "annual_mean_wage": 47214, "employment": 6, "major_group": "13", "uber_category": "Management & Business", "major_group_name": "Business & Financial Operations", "detailed_category_code": "13", "detailed_category_name": "U.S.", "total_compensation": 283284}, {"soc_code": "51-7099", "occupation_title": "U.S.", "job_complexity_index": 0.7301783528561147, "job_price_index": 0.7024425859551308, "annual_mean_wage": 52915, "employment": 6, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 317490}, {"soc_code": "51-9151", "occupation_title": "U.S.", "job_complexity_index": 1.4184021199419268, "job_price_index": 1.2758794636930837, "annual_mean_wage": 96112, "employment": 6, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 576672}, {"soc_code": "51-9150", "occupation_title": "U.S.", "job_complexity_index": 1.4011094453181858, "job_price_index": 1.5707818930041153, "annual_mean_wage": 118327, "employment": 6, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 709962}, {"soc_code": "51-9082", "occupation_title": "U.S.", "job_complexity_index": 1.198554758320992, "job_price_index": 1.0439798221160228, "annual_mean_wage": 78643, "employment": 6, "major_group": "51", "uber_category": "Production & Transportation", "major_group_name": "Production", "detailed_category_code": "51", "detailed_category_name": "U.S.", "total_compensation": 471858}];
+            
+            // Color scale for major groups
+            const colorScale = {
+                'Management': '#1f77b4',
+                'Business & Financial Operations': '#ff7f0e',
+                'Computer & Mathematical': '#2ca02c',
+                'Architecture & Engineering': '#d62728',
+                'Life, Physical, & Social Science': '#9467bd',
+                'Community & Social Service': '#8c564b',
+                'Legal': '#e377c2',
+                'Educational Instruction & Library': '#7f7f7f',
+                'Arts, Design, Entertainment, Sports, & Media': '#bcbd22',
+                'Healthcare Practitioners & Technical': '#17becf',
+                'Healthcare Support': '#1f77b4',
+                'Protective Service': '#ff7f0e',
+                'Food Preparation & Serving Related': '#2ca02c',
+                'Building & Grounds Cleaning & Maintenance': '#d62728',
+                'Personal Care & Service': '#9467bd',
+                'Sales & Related': '#8c564b',
+                'Office & Administrative Support': '#e377c2',
+                'Farming, Fishing, & Forestry': '#7f7f7f',
+                'Construction & Extraction': '#bcbd22',
+                'Installation, Maintenance, & Repair': '#17becf',
+                'Production': '#1f77b4',
+                'Transportation & Material Moving': '#ff7f0e',
+                'Military Specific': '#2ca02c'
+            };
+            
+            // Helper function to get color based on value
+            function getColorByValue(value) {
+                if (value >= 2.0) return '#053061';
+                if (value >= 1.5) return '#2166ac';
+                if (value >= 1.0) return '#4393c3';
+                if (value >= 0.7) return '#92c5de';
+                if (value >= 0.4) return '#d1e5f0';
+                return '#f7f7f7';
+            }
+            
+            // Helper function to get node size based on employment
+            function getNodeSize(employment) {
+                return Math.max(5, Math.sqrt(employment) / 100);
+            }
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize visualization
+                createJobSpace('employment', 'complexity');
+                
+                // Set event listeners
+                document.getElementById('updateButton').addEventListener('click', function() {
+                    const sizeBy = document.getElementById('sizeBySelect').value;
+                    const colorBy = document.getElementById('colorBySelect').value;
+                    createJobSpace(sizeBy, colorBy);
+                });
+                
+                // Create job space visualization
+                function createJobSpace(sizeBy = 'employment', colorBy = 'complexity') {
+                    // Clear previous visualization
+                    document.getElementById('jobSpaceContainer').innerHTML = `
+                        <div class="controls">
+                            <button id="zoomIn" class="btn btn-sm btn-light">+</button>
+                            <button id="zoomOut" class="btn btn-sm btn-light">-</button>
+                            <button id="resetZoom" class="btn btn-sm btn-light">Reset</button>
+                        </div>
+                    `;
+                    
+                    // Set up SVG
+                    const container = document.getElementById('jobSpaceContainer');
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    
+                    const svg = d3.select('#jobSpaceContainer')
+                        .append('svg')
+                        .attr('width', width)
+                        .attr('height', height);
+                    
+                    // Create tooltip
+                    const tooltip = d3.select('#jobSpaceContainer')
+                        .append('div')
+                        .attr('class', 'tooltip')
+                        .style('opacity', 0);
+                    
+                    // Create zoom behavior
+                    const zoom = d3.zoom()
+                        .scaleExtent([0.1, 10])
+                        .on('zoom', zoomed);
+                    
+                    svg.call(zoom);
+                    
+                    // Create a group for all elements that will be zoomed
+                    const g = svg.append('g');
+                    
+                    // Prepare nodes
+                    const nodes = jobData.map(job => ({
+                        id: job.soc_code,
+                        name: job.occupation_title,
+                        group: job.major_group_name,
+                        employment: job.employment,
+                        annual_mean_wage: job.annual_mean_wage,
+                        total_compensation: job.employment * job.annual_mean_wage,
+                        complexity: job.job_complexity_index,
+                        price: job.job_price_index
+                    }));
+                    
+                    // Create links between similar occupations
+                    const links = [];
+                    
+                    // Helper function to get major group from SOC code
+                    function getMajorGroup(socCode) {
+                        if (socCode.includes('-')) {
+                            return socCode.split('-')[0];
+                        } else {
+                            return socCode.substring(0, 2);
+                        }
+                    }
+                    
+                    // Create links between occupations in the same major group
+                    for (let i = 0; i < nodes.length; i++) {
+                        for (let j = i + 1; j < nodes.length; j++) {
+                            const node1 = nodes[i];
+                            const node2 = nodes[j];
+                            
+                            // Connect nodes in the same major group
+                            if (getMajorGroup(node1.id) === getMajorGroup(node2.id)) {
+                                links.push({
+                                    source: i,
+                                    target: j,
+                                    value: 0.7 + Math.random() * 0.3 // Strong connection within group
+                                });
+                            }
+                            // Connect some nodes across groups with weaker connections
+                            else if (Math.random() < 0.03) {
+                                links.push({
+                                    source: i,
+                                    target: j,
+                                    value: 0.1 + Math.random() * 0.3 // Weaker connection across groups
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Create force simulation
+                    const simulation = d3.forceSimulation(nodes)
+                        .force('link', d3.forceLink(links).id(d => d.index).distance(100))
+                        .force('charge', d3.forceManyBody().strength(-300))
+                        .force('center', d3.forceCenter(width / 2, height / 2))
+                        .force('collision', d3.forceCollide().radius(d => getNodeSize(d[sizeBy]) + 5));
+                    
+                    // Draw links
+                    const link = g.append('g')
+                        .attr('stroke', '#999')
+                        .attr('stroke-opacity', 0.3)
+                        .selectAll('line')
+                        .data(links)
+                        .join('line')
+                        .attr('stroke-width', d => d.value * 2);
+                    
+                    // Draw nodes
+                    const node = g.append('g')
+                        .selectAll('circle')
+                        .data(nodes)
+                        .join('circle')
+                        .attr('r', d => getNodeSize(d[sizeBy]))
+                        .attr('fill', d => colorBy === 'complexity' ? 
+                            getColorByValue(d.complexity) : 
+                            getColorByValue(d.price))
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', 1.5)
+                        .on('mouseover', function(event, d) {
+                            tooltip.transition()
+                                .duration(200)
+                                .style('opacity', .9);
+                            tooltip.html(`
+                                <strong>${d.name}</strong> (${d.id})<br>
+                                Group: ${d.group}<br>
+                                Employment: ${d.employment.toLocaleString()}<br>
+                                Annual Wage: $${d.annual_mean_wage.toLocaleString()}<br>
+                                Complexity: ${d.complexity.toFixed(2)}<br>
+                                Price Index: ${d.price.toFixed(2)}
+                            `)
+                                .style('left', (event.pageX - container.offsetLeft + 10) + 'px')
+                                .style('top', (event.pageY - container.offsetTop - 28) + 'px');
+                            
+                            // Highlight connected nodes
+                            const connectedNodes = links
+                                .filter(l => l.source.id === d.id || l.target.id === d.id)
+                                .flatMap(l => [l.source.id, l.target.id]);
+                            
+                            node.style('opacity', n => connectedNodes.includes(n.id) || n.id === d.id ? 1 : 0.3);
+                            link.style('opacity', l => l.source.id === d.id || l.target.id === d.id ? 0.8 : 0.1);
+                        })
+                        .on('mouseout', function() {
+                            tooltip.transition()
+                                .duration(500)
+                                .style('opacity', 0);
+                            
+                            // Reset opacity
+                            node.style('opacity', 1);
+                            link.style('opacity', 0.3);
+                        })
+                        .call(drag(simulation));
+                    
+                    // Add labels for larger nodes
+                    const label = g.append('g')
+                        .selectAll('text')
+                        .data(nodes.filter(d => d[sizeBy] > 100000)) // Only label larger nodes
+                        .join('text')
+                        .attr('class', 'node-label')
+                        .attr('text-anchor', 'middle')
+                        .attr('dy', d => -getNodeSize(d[sizeBy]) - 5)
+                        .text(d => d.name.length > 20 ? d.name.substring(0, 20) + '...' : d.name);
+                    
+                    // Update positions on each tick
+                    simulation.on('tick', () => {
+                        link
+                            .attr('x1', d => d.source.x)
+                            .attr('y1', d => d.source.y)
+                            .attr('x2', d => d.target.x)
+                            .attr('y2', d => d.target.y);
+                        
+                        node
+                            .attr('cx', d => d.x)
+                            .attr('cy', d => d.y);
+                        
+                        label
+                            .attr('x', d => d.x)
+                            .attr('y', d => d.y);
+                    });
+                    
+                    // Drag behavior
+                    function drag(simulation) {
+                        function dragstarted(event) {
+                            if (!event.active) simulation.alphaTarget(0.3).restart();
+                            event.subject.fx = event.subject.x;
+                            event.subject.fy = event.subject.y;
+                        }
+                        
+                        function dragged(event) {
+                            event.subject.fx = event.x;
+                            event.subject.fy = event.y;
+                        }
+                        
+                        function dragended(event) {
+                            if (!event.active) simulation.alphaTarget(0);
+                            event.subject.fx = null;
+                            event.subject.fy = null;
+                        }
+                        
+                        return d3.drag()
+                            .on('start', dragstarted)
+                            .on('drag', dragged)
+                            .on('end', dragended);
+                    }
+                    
+                    // Zoom function
+                    function zoomed(event) {
+                        g.attr('transform', event.transform);
+                    }
+                    
+                    // Set up zoom controls
+                    document.getElementById('zoomIn').addEventListener('click', function() {
+                        svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+                    });
+                    
+                    document.getElementById('zoomOut').addEventListener('click', function() {
+                        svg.transition().duration(300).call(zoom.scaleBy, 0.75);
+                    });
+                    
+                    document.getElementById('resetZoom').addEventListener('click', function() {
+                        svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+                    });
+                }
+            });
+        </script>
+    </body>
+    </html>
+    
