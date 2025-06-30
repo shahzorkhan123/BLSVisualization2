@@ -183,6 +183,7 @@
             const parents = [];
             const values = [];
             const colors = [];
+            const customdata = [];
             const hovertemplate = [];
             
             // Add major groups
@@ -191,11 +192,12 @@
                 parents.push("");
                 values.push(group.totalGDP);
                 colors.push(group.avgWage);
+                customdata.push([group.totalEmployment, group.avgWage]);
                 hovertemplate.push(
                     `<b>%{label}</b><br>` +
                     `Total GDP: $%{value:,.0f}<br>` +
-                    `Employment: ${group.totalEmployment:,}<br>` +
-                    `Avg Wage: $${group.avgWage:,.0f}<br>` +
+                    `Employment: %{customdata[0]:,}<br>` +
+                    `Avg Wage: $%{customdata[1]:,.0f}<br>` +
                     `<extra></extra>`
                 );
             });
@@ -207,12 +209,13 @@
                     parents.push(group.name);
                     values.push(occupation.gdp);
                     colors.push(occupation.avg_wage);
+                    customdata.push([occupation.employment, occupation.avg_wage, occupation.complexity]);
                     hovertemplate.push(
                         `<b>%{label}</b><br>` +
                         `GDP: $%{value:,.0f}<br>` +
-                        `Employment: ${occupation.employment:,}<br>` +
-                        `Avg Wage: $${occupation.avg_wage:,.0f}<br>` +
-                        `Complexity: ${occupation.complexity}<br>` +
+                        `Employment: %{customdata[0]:,}<br>` +
+                        `Avg Wage: $%{customdata[1]:,.0f}<br>` +
+                        `Complexity: %{customdata[2]}<br>` +
                         `<extra></extra>`
                     );
                 });
@@ -224,6 +227,7 @@
                 parents: parents,
                 values: values,
                 branchvalues: 'total',
+                customdata: customdata,
                 hovertemplate: hovertemplate,
                 marker: {
                     colors: colors,
