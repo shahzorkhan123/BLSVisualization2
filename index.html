@@ -67,7 +67,7 @@
                             <a class="nav-link" href="#" onclick="showVisualization('visualizations/refined_job_space.html', 'job-space')">Job Space</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="documentation/reproducibility.md">Documentation</a>
+                            <a class="nav-link" href="#" onclick="showVisualization('documentation/reproducibility.html', 'documentation')">Documentation</a>
                         </li>
                     </ul>
                 </div>
@@ -192,6 +192,9 @@
                         break;
                     case 'job-space':
                         title = 'Job Space Network';
+                        break;
+                    case 'documentation':
+                        title = 'Documentation';
                         break;
                     default:
                         title = 'Visualization';
