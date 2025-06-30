@@ -1,0 +1,43 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Job Complexity Treemap with Correct Job Titles</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+    <body>
+        <div id="treemap" style="width:100%;height:800px;"></div>
+        <script>
+            // Direct data definition
+            var data = [{
+                type: "treemap",
+                ids: ["All Jobs", "13", "17", "19", "27", "29", "31", "33", "35", "39", "41", "45", "47", "49", "51", "53", "51-2060", "51-2061", "29-1024", "17-2021", "17-2020", "35-2013", "13-1074", "39-5091", "19-3032", "29-1243", "51-7032", "27-2042", "49-9061", "47-2053", "29-1291", "53-7031", "53-7030", "29-1023", "45-2020", "45-2021", "29-1022", "27-2040", "47-5049", "47-2142", "41-9021", "49-9095", "49-9064", "49-9092", "51-7031", "47-2043", "41-9012", "51-6051", "33-2022", "29-1213", "49-9045", "17-1012", "47-5032", "47-5030", "41-9091", "29-1242", "39-5093", "29-1029", "29-1217", "29-1212", "29-1249", "53-7071", "31-2012", "53-4099", "53-4090", "19-1011"],
+                labels: ["All Jobs", "Business & Financial Operations", "Architecture & Engineering", "Life, Physical, & Social Science", "Arts, Design, Entertainment, Sports, & Media", "Healthcare Practitioners & Technical", "Healthcare Support", "Protective Service", "Food Preparation & Serving Related", "Personal Care & Service", "Sales & Related", "Farming, Fishing, & Forestry", "Construction & Extraction", "Installation, Maintenance, & Repair", "Production", "Transportation & Material Moving", "Timing Device Assemblers and Adjusters", "Timing Device Assemblers and Adjusters", "Prosthodontists", "Agricultural Engineers", "Agricultural Engineers", "Cooks, Private Household", "Farm Labor Contractors", "Makeup Artists, Theatrical and Performance", "Industrial-Organizational Psychologists", "Pediatric Surgeons", "Patternmakers, Wood", "Musicians and Singers", "Camera and Photographic Equipment Repairers", "Terrazzo Workers and Finishers", "Acupuncturists", "Dredge Operators", "Dredge Operators", "Orthodontists", "Animal Breeders", "Animal Breeders", "Oral and Maxillofacial Surgeons", "Musicians, Singers, and Related Workers", "Underground Mining Machine Operators, All Other", "Paperhangers", "Real Estate Brokers", "Manufactured Building and Mobile Home Installers", "Watch and Clock Repairers", "Commercial Divers", "Model Makers, Wood", "Floor Sanders and Finishers", "Models", "Sewers, Hand", "Forest Fire Inspectors and Prevention Specialists", "Dermatologists", "Refractory Materials Repairers, Except Brickmasons", "Landscape Architects", "Explosives Workers, Ordnance Handling Experts, and Blasters", "Explosives Workers, Ordnance Handling Experts, and Blasters", "Door-to-Door Sales Workers, News and Street Vendors, and Related Workers", "Orthopedic Surgeons, Except Pediatric", "Shampooers", "Dentists, All Other Specialists", "Neurologists", "Cardiologists", "Surgeons, All Other", "Gas Compressor and Gas Pumping Station Operators", "Occupational Therapy Aides", "Rail Transportation Workers, All Other", "Miscellaneous Rail Transportation Workers", "Animal Scientists"],
+                parents: ["", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "All Jobs", "51", "51", "29", "17", "17", "35", "13", "39", "19", "29", "51", "27", "49", "47", "29", "53", "53", "29", "45", "45", "29", "27", "47", "47", "41", "49", "49", "49", "51", "47", "41", "51", "33", "29", "49", "17", "47", "47", "41", "29", "39", "29", "29", "29", "29", "53", "31", "53", "53", "19"],
+                values: [862.0999999999999, 28.3, 78.5, 34.9, 34.8, 178.29999999999998, 10.3, 11.7, 32.7, 35.6, 36.599999999999994, 34.8, 83.0, 70.19999999999999, 123.49999999999999, 68.89999999999999, 38.4, 38.4, 36.3, 33.6, 33.6, 32.7, 28.3, 24.7, 24.7, 23.4, 22.4, 20.3, 20.3, 20.1, 19.5, 19.0, 19.0, 18.7, 17.4, 17.4, 15.3, 14.5, 14.5, 13.7, 13.6, 13.0, 12.8, 12.6, 12.5, 12.1, 11.8, 11.8, 11.7, 11.6, 11.5, 11.3, 11.3, 11.3, 11.2, 11.2, 10.9, 10.7, 10.6, 10.5, 10.5, 10.3, 10.3, 10.3, 10.3, 10.2],
+                branchvalues: "total",
+                marker: {
+                    colors: [1.0636230530583142, 0.5436766406027007, 1.0421604306464138, 0.9581239662519405, 0.8201997585293055, 1.3553701532675297, 1.3042340736332143, 1.2470018555250446, 1.1869980621432392, 0.9956295210479168, 0.9332384455651027, 0.724659767551552, 0.7901439508385598, 1.2094667297384822, 1.1026579865803896, 0.9530520786093964, 1.335571595510109, 1.239709698194777, 2.0214119921231424, 1.4792771661403976, 0.8190338598968916, 1.1869980621432392, 0.5436766406027007, 1.096343109282771, 0.8066149985299206, 1.8005969156155528, 0.6341203716875272, 0.9069664941271848, 1.726272036133457, 0.4507266088292908, 0.5652226366831944, 0.7882695422132747, 1.5554001181108337, 0.8085717094017425, 0.3941005519198363, 1.0552189831832677, 1.291181145971774, 0.7334330229314261, 0.9986518853885076, 0.8957109947816633, 1.1290590612530476, 1.5260733335899266, 1.0426784733626175, 0.6113245855522053, 1.233665967956295, 0.8133697524435624, 0.4193265562847336, 1.0702222995532398, 1.2470018555250446, 1.9330010429996072, 1.140985220054204, 0.8281702659019522, 0.6837903025860127, 0.8986141610023222, 1.251329719157527, 1.3776498534886796, 0.8949159328130627, 1.1733232934634452, 1.6913974588444356, 1.3977982273798255, 0.8489174099714288, 0.7379630860296417, 1.3042340736332143, 0.5607546841207025, 1.122872962572529, 1.1096329339739606],
+                    colorscale: "RdBu",
+                    cmid: 1.0516877140379515,
+                    colorbar: {
+                        title: "Job Complexity Index",
+                        thickness: 20,
+                        len: 0.7
+                    }
+                },
+                hovertemplate: '<b>%{label}</b><br>Employment: %{value}<br>Complexity: %{color:.2f}<extra></extra>',
+                texttemplate: '%{label}'
+            }];
+
+            var layout = {
+                title: 'Job Complexity Treemap: Top 50 US Occupations by Employment',
+                margin: {t:50, l:25, r:25, b:25},
+                height: 800
+            };
+
+            Plotly.newPlot('treemap', data, layout);
+        </script>
+    </body>
+    </html>
+    
