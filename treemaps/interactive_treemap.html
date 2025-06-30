@@ -69,6 +69,17 @@
         
         <div class="controls">
             <div class="control-group">
+                <label for="year-select">Year:</label>
+                <select id="year-select">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
                 <label for="region-type">Region Type:</label>
                 <select id="region-type">
                     <option value="National">National</option>
@@ -85,17 +96,40 @@
             </div>
             
             <div class="control-group">
+                <label for="treemap-parameter">Treemap Parameter:</label>
+                <select id="treemap-parameter">
+                    <option value="employment">Number of Employees</option>
+                    <option value="gdp">GDP (Employees × Avg Salary)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
                 <label for="color-by">Color By:</label>
                 <select id="color-by">
                     <option value="TOT_EMP">Employment</option>
                     <option value="A_MEAN">Average Annual Wage</option>
+                    <option value="complexity_score">Job Complexity</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="vocation-limit">Vocations:</label>
+                <select id="vocation-limit">
+                    <option value="all">All Vocations</option>
+                    <option value="top50">Top 50 Vocations</option>
                 </select>
             </div>
         </div>
         
         <div id="treemap"></div>
         
-        <p class="note">Note: This visualization uses synthetic data for demonstration purposes.</p>
+        <div class="export-controls" style="margin-top: 15px; text-align: center;">
+            <button onclick="exportCurrentData()" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                Export Current Data as CSV
+            </button>
+        </div>
+        
+        <p class="note">Note: This visualization displays BLS occupational employment and wage data. Use the dropdowns to filter by year, region, and other parameters. The export function saves the currently filtered data as a CSV file.</p>
     </div>
 
     <script>
@@ -106,17 +140,27 @@
         
         // Initialize the visualization
         $(document).ready(function() {
-            // Load the data
-            $.getJSON('combined_job_data.json', function(data) {
+            // Load the enhanced data with year information
+            $.getJSON('enhanced_job_data.json', function(data) {
                 allData = data;
                 updateRegionDropdown();
                 updateTreemap();
+            }).fail(function() {
+                // Fallback to original data if enhanced data is not available
+                $.getJSON('combined_job_data.json', function(data) {
+                    allData = data;
+                    updateRegionDropdown();
+                    updateTreemap();
+                });
             });
             
-            // Event listeners
+            // Event listeners for all controls
+            $('#year-select').change(updateTreemap);
             $('#region-type').change(updateRegionDropdown);
             $('#region').change(updateTreemap);
+            $('#treemap-parameter').change(updateTreemap);
             $('#color-by').change(updateTreemap);
+            $('#vocation-limit').change(updateTreemap);
         });
         
         function updateRegionDropdown() {
@@ -152,69 +196,217 @@
         function updateTreemap() {
             if (!allData) return;
             
+            const year = $('#year-select').val();
             const regionType = $('#region-type').val();
             const region = $('#region').val();
+            const treemapParameter = $('#treemap-parameter').val();
             const colorBy = $('#color-by').val();
+            const vocationLimit = $('#vocation-limit').val();
             
-            // Filter data
-            const filteredData = allData.filter(d => 
-                d.Region_Type === regionType && d.Region === region
-            );
+            // Filter data by selected criteria
+            let filteredData = allData.filter(d => {
+                // Year filtering
+                const dataYear = d.year || 2024; // Default to 2024 if no year specified
+                const matchesYear = dataYear.toString() === year;
+                
+                // Region filtering
+                let matchesRegion = true;
+                if (regionType === 'National') {
+                    matchesRegion = (d.Region_Type === 'National' || d.region_type === 'National' || !d.Region_Type) &&
+                                  (d.Region === 'United States' || d.region === 'United States' || !d.Region);
+                } else {
+                    matchesRegion = (d.Region_Type === regionType || d.region_type === regionType) && 
+                                  (d.Region === region || d.region === region);
+                }
+                
+                return matchesYear && matchesRegion;
+            });
+            
+            // Apply vocation limit
+            if (vocationLimit === 'top50') {
+                // Sort by employment and take top 50
+                filteredData = filteredData
+                    .filter(d => d.TOT_EMP > 0) // Only include records with employment data
+                    .sort((a, b) => (b.TOT_EMP || 0) - (a.TOT_EMP || 0))
+                    .slice(0, 50);
+            }
             
             // Group data by major group
             const groupedData = {};
             filteredData.forEach(d => {
-                if (!groupedData[d.SOC_Major_Group_Name]) {
-                    groupedData[d.SOC_Major_Group_Name] = {
-                        name: d.SOC_Major_Group_Name,
+                const groupName = d.SOC_Major_Group_Name || d.major_group_name || d.occupation_title || 'Other';
+                
+                if (!groupedData[groupName]) {
+                    groupedData[groupName] = {
+                        name: groupName,
                         children: [],
-                        value: 0
+                        value: 0,
+                        totalGDP: 0
                     };
                 }
                 
-                groupedData[d.SOC_Major_Group_Name].children.push({
-                    name: d.OCC_TITLE,
-                    value: d.TOT_EMP,
-                    colorValue: d[colorBy]
+                const employment = d.TOT_EMP || d.employment || 0;
+                const avgWage = d.A_MEAN || d.annual_mean_wage || 0;
+                const gdp = employment * avgWage;
+                
+                groupedData[groupName].children.push({
+                    name: d.OCC_TITLE || d.occupation_title || 'Unknown',
+                    employment: employment,
+                    avgWage: avgWage,
+                    gdp: gdp,
+                    colorValue: d[colorBy] || d.complexity_score || d.annual_mean_wage || employment
                 });
                 
-                groupedData[d.SOC_Major_Group_Name].value += d.TOT_EMP;
+                groupedData[groupName].value += employment;
+                groupedData[groupName].totalGDP += gdp;
             });
             
             // Convert to array for treemap
             const treemapData = Object.values(groupedData);
             
-            // Create treemap
+            // Determine size metric based on treemap parameter selection
+            const sizeMetric = treemapParameter === 'gdp' ? 'totalGDP' : 'value';
+            const sizeLabel = treemapParameter === 'gdp' ? 'GDP (Employment × Avg Wage)' : 'Employment';
+            
+            // Create treemap data structure
             const data = [{
                 type: 'treemap',
                 labels: treemapData.map(d => d.name),
                 parents: treemapData.map(() => ''),
-                values: treemapData.map(d => d.value),
+                values: treemapData.map(d => d[sizeMetric]),
                 branchvalues: 'total',
-                hovertemplate: '<b>%{label}</b><br>Employment: %{value}<br><extra></extra>',
+                hovertemplate: `<b>%{label}</b><br>${sizeLabel}: %{value:,.0f}<br><extra></extra>`,
                 marker: {
-                    colors: treemapData.map(d => d.value),
-                    colorscale: 'Viridis'
+                    colors: treemapData.map(d => {
+                        // Calculate average color value for each group
+                        if (d.children.length === 0) return 0;
+                        return d.children.reduce((sum, child) => sum + (child.colorValue || 0), 0) / d.children.length;
+                    }),
+                    colorscale: 'Viridis',
+                    colorbar: {
+                        title: getColorBarTitle(colorBy)
+                    }
                 }
             }];
             
-            // Add children
+            // Add children details to treemap
             treemapData.forEach(group => {
-                data[0].labels = data[0].labels.concat(group.children.map(c => c.name));
-                data[0].parents = data[0].parents.concat(group.children.map(() => group.name));
-                data[0].values = data[0].values.concat(group.children.map(c => c.value));
-                
-                // Use the selected color metric
-                const colorValues = group.children.map(c => c.colorValue);
-                data[0].marker.colors = data[0].marker.colors.concat(colorValues);
+                group.children.forEach(child => {
+                    data[0].labels.push(child.name);
+                    data[0].parents.push(group.name);
+                    
+                    // Use appropriate size metric
+                    const childSize = treemapParameter === 'gdp' ? child.gdp : child.employment;
+                    data[0].values.push(childSize);
+                    data[0].marker.colors.push(child.colorValue || 0);
+                });
             });
             
             const layout = {
-                margin: {l: 0, r: 0, b: 0, t: 30},
-                title: `${region} Labor Market by Occupational Groups`,
+                margin: {l: 0, r: 0, b: 0, t: 50},
+                title: {
+                    text: generateTitle(year, region, treemapParameter, vocationLimit),
+                    font: { size: 16 }
+                },
+                font: { size: 12 }
             };
             
             Plotly.newPlot('treemap', data, layout);
+        }
+        
+        function getColorBarTitle(colorBy) {
+            switch(colorBy) {
+                case 'TOT_EMP': return 'Employment';
+                case 'A_MEAN': return 'Avg Annual Wage ($)';
+                case 'complexity_score': return 'Job Complexity';
+                default: return 'Value';
+            }
+        }
+        
+        function generateTitle(year, region, parameter, vocationLimit) {
+            const limitText = vocationLimit === 'top50' ? 'Top 50 ' : '';
+            const parameterText = parameter === 'gdp' ? 'GDP' : 'Employment';
+            return `${limitText}${region} Labor Market by ${parameterText} (${year})`;
+        }
+        
+        // Export current filtered data as CSV
+        function exportCurrentData() {
+            if (!allData) {
+                alert('No data available to export');
+                return;
+            }
+            
+            const year = $('#year-select').val();
+            const regionType = $('#region-type').val();
+            const region = $('#region').val();
+            const vocationLimit = $('#vocation-limit').val();
+            
+            // Get the same filtered data used in the treemap
+            let filteredData = allData.filter(d => {
+                const dataYear = d.year || 2024;
+                const matchesYear = dataYear.toString() === year;
+                
+                let matchesRegion = true;
+                if (regionType === 'National') {
+                    matchesRegion = (d.Region_Type === 'National' || d.region_type === 'National' || !d.Region_Type) &&
+                                  (d.Region === 'United States' || d.region === 'United States' || !d.Region);
+                } else {
+                    matchesRegion = (d.Region_Type === regionType || d.region_type === regionType) && 
+                                  (d.Region === region || d.region === region);
+                }
+                
+                return matchesYear && matchesRegion;
+            });
+            
+            // Apply vocation limit
+            if (vocationLimit === 'top50') {
+                filteredData = filteredData
+                    .filter(d => (d.TOT_EMP || d.employment || 0) > 0)
+                    .sort((a, b) => (b.TOT_EMP || b.employment || 0) - (a.TOT_EMP || a.employment || 0))
+                    .slice(0, 50);
+            }
+            
+            // Create CSV content
+            const headers = [
+                'Year', 'Region_Type', 'Region', 'SOC_Code', 'Occupation_Title', 
+                'Major_Group', 'Employment', 'Average_Annual_Wage', 'GDP', 'Complexity_Score'
+            ];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            filteredData.forEach(d => {
+                const employment = d.TOT_EMP || d.employment || 0;
+                const avgWage = d.A_MEAN || d.annual_mean_wage || 0;
+                const gdp = d.GDP || (employment * avgWage);
+                
+                const row = [
+                    d.year || 2024,
+                    d.Region_Type || d.region_type || 'National',
+                    d.Region || d.region || 'United States',
+                    d.SOC_Code || d.soc_code || '',
+                    '"' + (d.OCC_TITLE || d.occupation_title || '').replace(/"/g, '""') + '"',
+                    '"' + (d.SOC_Major_Group_Name || d.major_group_name || '').replace(/"/g, '""') + '"',
+                    employment,
+                    avgWage,
+                    gdp,
+                    d.complexity_score || 0
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                const filename = `bls_labor_data_${year}_${region.replace(/\s+/g, '_')}_${vocationLimit}.csv`;
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         }
     </script>
     
