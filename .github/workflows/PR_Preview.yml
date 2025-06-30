@@ -1,0 +1,38 @@
+name: Deploy Preview for PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Build your site here if needed
+    # For static HTML, you can skip build steps
+
+    - name: Deploy to GitHub Pages (PR Preview)
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./ # or your build output directory
+        destination_branch: gh-pages
+        destination_dir: pr-preview/pr-${{ github.event.pull_request.number }}
+
+    - name: Comment PR with Preview URL
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+          const repo = context.repo;
+          const url = `https://${repo.owner}.github.io/${repo.repo}/pr-preview/pr-${pr.number}/`;
+          github.rest.issues.createComment({
+            issue_number: pr.number,
+            owner: repo.owner,
+            repo: repo.repo,
+            body: `🚀 Preview deployed: [View it here](${url})`
+          });
