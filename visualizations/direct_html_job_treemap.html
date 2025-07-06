@@ -160,10 +160,10 @@
         const metros = ["New York-Newark-Jersey City, NY-NJ-PA", "Los Angeles-Long Beach-Anaheim, CA", "Chicago-Naperville-Elgin, IL-IN-WI", "Dallas-Fort Worth-Arlington, TX", "Houston-The Woodlands-Sugar Land, TX", "Washington-Arlington-Alexandria, DC-VA-MD-WV", "Miami-Fort Lauderdale-West Palm Beach, FL", "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD", "Atlanta-Sandy Springs-Roswell, GA", "Boston-Cambridge-Newton, MA-NH", "San Francisco-Oakland-Hayward, CA", "Phoenix-Mesa-Scottsdale, AZ", "Riverside-San Bernardino-Ontario, CA", "Detroit-Warren-Dearborn, MI", "Seattle-Tacoma-Bellevue, WA"];
         
         // Initialize the visualization
-        $(document).ready(async function() {
+        $(document).ready(function() {
             try {
-                // Load data from CSV via shared data loader
-                allData = await getBLSData();
+                // Load data synchronously from embedded data - no CORS issues
+                allData = getBLSData();
                 updateRegionDropdown();
                 updateTreemap();
             } catch (error) {
