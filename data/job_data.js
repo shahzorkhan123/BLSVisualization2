@@ -1,226 +1,172 @@
 /**
  * Job data for BLS Visualizations
- * This file loads data from CSV files and provides a CORS-free interface
- * Format: JSONP-style to avoid CORS issues with static hosting
+ * This file contains embedded job data in JSONP format to avoid CORS issues
+ * Format: Static JavaScript data for CORS-free access
  * Last updated: 2025-06-30 02:19:21
  */
 
-// Global data loader that reads from CSV files
+// Embedded job data - CORS-free approach
 window.BLS_DATA = {
     lastUpdated: '2025-06-30',
     dataSource: 'BLS OES Data + O*NET Complexity Scores',
     
-    // Main dataset - loaded from CSV files
-    jobData: null,
+    // Main dataset - embedded directly to avoid CORS issues
+    jobData: [
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "11-0000",
+            "OCC_TITLE": "Management Occupations",
+            "SOC_Major_Group": "11",
+            "SOC_Major_Group_Name": "Management",
+            "TOT_EMP": 9270000,
+            "A_MEAN": 126480,
+            "GDP": 1173000000000,
+            "complexity_score": 0.85
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "13-0000",
+            "OCC_TITLE": "Business and Financial Operations",
+            "SOC_Major_Group": "13",
+            "SOC_Major_Group_Name": "Business and Financial",
+            "TOT_EMP": 8916000,
+            "A_MEAN": 79940,
+            "GDP": 712800000000,
+            "complexity_score": 0.75
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "15-0000",
+            "OCC_TITLE": "Computer and Mathematical",
+            "SOC_Major_Group": "15",
+            "SOC_Major_Group_Name": "Computer and Mathematical",
+            "TOT_EMP": 4552000,
+            "A_MEAN": 99860,
+            "GDP": 454700000000,
+            "complexity_score": 0.82
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "17-0000",
+            "OCC_TITLE": "Architecture and Engineering",
+            "SOC_Major_Group": "17",
+            "SOC_Major_Group_Name": "Architecture and Engineering",
+            "TOT_EMP": 2449000,
+            "A_MEAN": 90300,
+            "GDP": 221200000000,
+            "complexity_score": 0.80
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "19-0000",
+            "OCC_TITLE": "Life, Physical, and Social Science",
+            "SOC_Major_Group": "19",
+            "SOC_Major_Group_Name": "Life, Physical, and Social Science",
+            "TOT_EMP": 1288000,
+            "A_MEAN": 80730,
+            "GDP": 104000000000,
+            "complexity_score": 0.78
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "21-0000",
+            "OCC_TITLE": "Community and Social Service",
+            "SOC_Major_Group": "21",
+            "SOC_Major_Group_Name": "Community and Social Service",
+            "TOT_EMP": 2321000,
+            "A_MEAN": 53480,
+            "GDP": 124100000000,
+            "complexity_score": 0.65
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "23-0000",
+            "OCC_TITLE": "Legal Occupations",
+            "SOC_Major_Group": "23",
+            "SOC_Major_Group_Name": "Legal",
+            "TOT_EMP": 1247000,
+            "A_MEAN": 112320,
+            "GDP": 140100000000,
+            "complexity_score": 0.83
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "25-0000",
+            "OCC_TITLE": "Educational Instruction",
+            "SOC_Major_Group": "25",
+            "SOC_Major_Group_Name": "Educational Instruction",
+            "TOT_EMP": 8636000,
+            "A_MEAN": 63010,
+            "GDP": 544000000000,
+            "complexity_score": 0.70
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "27-0000",
+            "OCC_TITLE": "Arts, Design, Entertainment",
+            "SOC_Major_Group": "27",
+            "SOC_Major_Group_Name": "Arts, Design, Entertainment",
+            "TOT_EMP": 1951000,
+            "A_MEAN": 66100,
+            "GDP": 129000000000,
+            "complexity_score": 0.68
+        },
+        {
+            "year": 2024,
+            "Region_Type": "National",
+            "Region": "United States",
+            "SOC_Code": "29-0000",
+            "OCC_TITLE": "Healthcare Practitioner",
+            "SOC_Major_Group": "29",
+            "SOC_Major_Group_Name": "Healthcare Practitioner",
+            "TOT_EMP": 9043000,
+            "A_MEAN": 94350,
+            "GDP": 853300000000,
+            "complexity_score": 0.76
+        }
+    ],
     
-    // Load data from CSV file
-    async loadData() {
-        if (this.jobData) return this.jobData; // Return cached data if already loaded
-        
-        try {
-            // Determine the correct path based on current location
-            let csvPath;
-            if (window.location.pathname.includes('/visualizations/')) {
-                csvPath = '../data/us_occupational_data.csv';
-            } else {
-                csvPath = './data/us_occupational_data.csv';
-            }
-            
-            // Load the main occupational data CSV
-            const response = await fetch(csvPath);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const csvText = await response.text();
-            
-            // Parse CSV data
-            this.jobData = this.parseCSV(csvText);
-            console.log('Successfully loaded', this.jobData.length, 'job records from CSV');
-            return this.jobData;
-        } catch (error) {
-            console.error('Failed to load job data from CSV:', error);
-            console.log('Using fallback sample data for demo purposes');
-            // Fallback to sample data for demo purposes
-            this.jobData = [
-        {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 1847900,
-                "A_MEAN": 110140,
-                "GDP": 203525346000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "29-1141",
-                "OCC_TITLE": "Registered Nurses",
-                "SOC_Major_Group_Name": "Healthcare Practitioners",
-                "TOT_EMP": 3175390,
-                "A_MEAN": 80010,
-                "GDP": 254095239900,
-                "complexity_score": 0.72
-        },
-        {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "25-2021",
-                "OCC_TITLE": "Elementary School Teachers",
-                "SOC_Major_Group_Name": "Education Training and Library",
-                "TOT_EMP": 1424890,
-                "A_MEAN": 60940,
-                "GDP": 86824851600,
-                "complexity_score": 0.68
-        },
-        {
-                "year": 2023,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 1795600,
-                "A_MEAN": 107510,
-                "GDP": 192899356000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2023,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "29-1141",
-                "OCC_TITLE": "Registered Nurses",
-                "SOC_Major_Group_Name": "Healthcare Practitioners",
-                "TOT_EMP": 3100250,
-                "A_MEAN": 78500,
-                "GDP": 243369625000,
-                "complexity_score": 0.71
-        },
-        {
-                "year": 2024,
-                "Region_Type": "State",
-                "Region": "California",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 425000,
-                "A_MEAN": 145000,
-                "GDP": 61625000000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2024,
-                "Region_Type": "State",
-                "Region": "Texas",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 195000,
-                "A_MEAN": 108000,
-                "GDP": 21060000000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2024,
-                "Region_Type": "Metropolitan",
-                "Region": "New York-Newark-Jersey City, NY-NJ-PA",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 156000,
-                "A_MEAN": 135000,
-                "GDP": 21060000000,
-                "complexity_score": 0.85
-        }];
+    // Simple synchronous data access - no CORS issues
+    getData() {
+        console.log('BLS Data loaded successfully - ', this.jobData.length, 'records available');
+        return this.jobData;
     },
     
-    // Parse CSV text into array of objects
-    parseCSV(csvText) {
-        const lines = csvText.trim().split('\n');
-        if (lines.length < 2) {
-            throw new Error('CSV file appears to be empty or invalid');
-        }
-        
-        const headers = lines[0].split(',');
-        const data = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue; // Skip empty lines
-            
-            const values = line.split(',');
-            if (values.length !== headers.length) {
-                console.warn(`Skipping malformed line ${i + 1}: ${line}`);
-                continue;
-            }
-            
-            const row = {};
-            
-            headers.forEach((header, index) => {
-                const value = values[index];
-                // Convert numeric fields based on CSV structure
-                if (header === 'employment' || header === 'mean_annual_wage' || header === 'complexity_score') {
-                    row[header] = parseFloat(value) || 0;
-                } else {
-                    // Clean up string values (remove quotes if present)
-                    row[header] = value.replace(/^"(.*)"$/, '$1');
-                }
-            });
-            
-            data.push(row);
-        }
-        
-        return data;
-    },
-    
-    // Metadata for dropdowns and filters
+    // Metadata for dropdown controls and filtering
     metadata: {
-        "years": [
-                2023,
-                2024
-        ],
-        "regionTypes": [
-                "Metropolitan",
-                "National",
-                "State"
-        ],
-        "parameters": [
-                "employment",
-                "gdp"
-        ],
-        "colorSchemes": [
-                "complexity",
-                "employment",
-                "wage"
-        ],
-        "limits": [
-                "all",
-                "top50"
-        ],
+        "years": [2024],
+        "regionTypes": ["National", "State", "Metropolitan"],
+        "parameters": ["complexity", "employment", "wage"],
+        "limits": ["all", "top50"],
         "regions": {
-                "Metropolitan": [
-                        "New York-Newark-Jersey City, NY-NJ-PA"
-                ],
-                "National": [
-                        "United States"
-                ],
-                "State": [
-                        "California",
-                        "Texas"
-                ]
+            "Metropolitan": ["New York-Newark-Jersey City, NY-NJ-PA"],
+            "National": ["United States"],
+            "State": ["California", "Texas"]
         }
     }
 };
 
-// Helper function to get data (async now)
-window.getBLSData = async function() {
-    return await window.BLS_DATA.loadData();
+// Helper function to get data (synchronous - no CORS issues)
+window.getBLSData = function() {
+    return window.BLS_DATA.getData();
 };
 
 // Helper function to get metadata
@@ -243,4 +189,4 @@ window.updateBLSData = function(newData, newMetadata) {
     document.dispatchEvent(event);
 };
 
-console.log('BLS Data loader initialized - use getBLSData() to load data from CSV');
+console.log('BLS Data loader initialized - use getBLSData() to access embedded data (CORS-free)');
