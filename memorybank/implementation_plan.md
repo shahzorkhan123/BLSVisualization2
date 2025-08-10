@@ -25,13 +25,22 @@
 4. Ensure filters maintain state across visualizations where relevant (e.g., selected occupation highlighted in treemap and job space).
 5. Test filters with real data to confirm performance and usability.
 
-## 4. Clean Up and Streamline
+## 4. Implement Automated Year/Country Data Pipelines
+1. Create a parameterized ingestion script (e.g., `scripts/data_processing/update_data.py`) that accepts `year` and `country` inputs.
+2. For `US`, fetch BLS OEWS and ONET files for the specified year; for other countries, integrate their respective labor databases (e.g., Eurostat, ILO).
+3. Normalize all sources to a shared schema and store raw files in `data/raw/<country>/<year>/`.
+4. Execute existing processing scripts to generate category CSVs under `data/processed/<country>/<year>/`.
+5. Provide a Makefile or CLI entry that runs the full pipeline and updates data in place.
+6. Schedule the pipeline via GitHub Actions or cron to refresh datasets annually.
+7. Document pipeline usage and country data source mappings in `documentation/reproducibility.md`.
+
+## 5. Clean Up and Streamline
 1. Identify unused or experimental HTML files and remove or archive them.
 2. Consolidate visualization scripts to reduce duplication.
 3. Standardize data file naming conventions and directory structure.
 4. Update README and documentation to reflect the finalized workflow.
 
-## 5. Future Enhancements
+## 6. Future Enhancements
 - Integrate time-series analysis once multiple years of data are available.
-- Add automated data update scripts to fetch new BLS releases.
+- Expand data pipelines to additional country sources and historical backfilling.
 - Explore deploying the site with a lightweight backend for dynamic data queries.
