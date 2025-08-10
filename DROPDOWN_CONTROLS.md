@@ -23,7 +23,8 @@ This document describes the enhanced dropdown controls added to the BLS (Bureau 
 - **Options**:
   - "All Vocations" - Show all available occupations
   - "Top 50 Vocations" - Show only the top 50 occupations by employment
-- **Default**: All Vocations
+  - "Top 500 Vocations" - Show only the top 500 occupations by employment
+- **Default**: Top 50 Vocations
 - **Usage**: Focus on major occupations or see comprehensive view
 
 ### 4. Enhanced Color Options
@@ -33,7 +34,7 @@ This document describes the enhanced dropdown controls added to the BLS (Bureau 
   - Average Annual Wage
   - Job Complexity Score
 - **Usage**: Visualize different aspects of the labor market data
-
+- 
 ## Data Organization
 
 ### CSV Files Structure
