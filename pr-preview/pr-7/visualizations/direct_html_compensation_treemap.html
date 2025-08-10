@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Job Price/Compensation Treemap</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            flex: 1;
+            margin-right: 15px;
+            min-width: 150px;
+        }
+        .control-group:last-child {
+            margin-right: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #treemap {
+            height: 700px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .export-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .export-controls button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .export-controls button:hover {
+            background-color: #218838;
+        }
+        .note {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Job Price/Compensation Treemap</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="year-select">Year:</label>
+                <select id="year-select">
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="region-type">Region Type:</label>
+                <select id="region-type">
+                    <option value="National">National</option>
+                    <option value="State">State</option>
+                    <option value="Metro">Metropolitan Area</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="region">Region:</label>
+                <select id="region">
+                    <option value="United States">United States</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="treemap-parameter">Treemap Parameter:</label>
+                <select id="treemap-parameter">
+                    <option value="gdp">Total Compensation (GDP)</option>
+                    <option value="employment">Number of Employees</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="color-by">Color By:</label>
+                <select id="color-by">
+                    <option value="A_MEAN">Average Annual Wage</option>
+                    <option value="TOT_EMP">Employment</option>
+                    <option value="complexity_score">Job Complexity</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="vocation-limit">Vocations:</label>
+                <select id="vocation-limit">
+                    <option value="top50">Top 50 Vocations</option>
+                    <option value="all">All Vocations</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="treemap"></div>
+        
+        <div class="export-controls">
+            <button onclick="exportCurrentData()">Export Current Data as CSV</button>
+        </div>
+        
+        <p class="note">Interactive BLS Job Price/Compensation Treemap - Use the dropdown controls to filter data by year, region, and other parameters. The treemap displays total compensation and wage data with dynamic sizing and coloring options.</p>
+    </div>
+
+    <script>
+        // CSV parsing utility function
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        const value = values[index];
+                        // Convert numeric fields
+                        if (['year', 'TOT_EMP', 'A_MEAN', 'GDP', 'complexity_score'].includes(header)) {
+                            obj[header] = parseFloat(value);
+                        } else {
+                            obj[header] = value;
+                        }
+                    });
+                    data.push(obj);
+                }
+            }
+            return data;
+        }
+
+        // Load the data from CSV
+        let allData = [];
+        function loadData(callback) {
+            $.get('../treemaps/enhanced_job_data.csv', function(csvData) {
+                allData = parseCSV(csvData);
+                if (callback) callback();
+            }).fail(function(err) {
+                console.error('Error loading data:', err);
+            });
+        }
+        let currentFilteredData = [];
+        const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
+        const metros = ["New York-Newark-Jersey City, NY-NJ-PA", "Los Angeles-Long Beach-Anaheim, CA", "Chicago-Naperville-Elgin, IL-IN-WI", "Dallas-Fort Worth-Arlington, TX", "Houston-The Woodlands-Sugar Land, TX", "Washington-Arlington-Alexandria, DC-VA-MD-WV", "Miami-Fort Lauderdale-West Palm Beach, FL", "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD", "Atlanta-Sandy Springs-Roswell, GA", "Boston-Cambridge-Newton, MA-NH", "San Francisco-Oakland-Hayward, CA", "Phoenix-Mesa-Scottsdale, AZ", "Riverside-San Bernardino-Ontario, CA", "Detroit-Warren-Dearborn, MI", "Seattle-Tacoma-Bellevue, WA"];
+        
+        // Initialize the visualization
+        $(document).ready(function() {
+            loadData(function() {
+                updateRegionDropdown();
+                updateTreemap();
+
+                // Event listeners for all controls
+                $('#year-select').change(updateTreemap);
+                $('#region-type').change(updateRegionDropdown);
+                $('#region').change(updateTreemap);
+                $('#treemap-parameter').change(updateTreemap);
+                $('#color-by').change(updateTreemap);
+                $('#vocation-limit').change(updateTreemap);
+            });
+        });
+        
+        function updateRegionDropdown() {
+            const regionType = $('#region-type').val();
+            const regionDropdown = $('#region');
+            
+            regionDropdown.empty();
+            
+            if (regionType === 'National') {
+                regionDropdown.append($('<option>', {
+                    value: 'United States',
+                    text: 'United States'
+                }));
+            } else if (regionType === 'State') {
+                states.forEach(state => {
+                    regionDropdown.append($('<option>', {
+                        value: state,
+                        text: state
+                    }));
+                });
+            } else if (regionType === 'Metro') {
+                metros.forEach(metro => {
+                    regionDropdown.append($('<option>', {
+                        value: metro,
+                        text: metro
+                    }));
+                });
+            }
+            
+            updateTreemap();
+        }
+        
+        function updateTreemap() {
+            if (!allData) return;
+            
+            const year = $('#year-select').val();
+            const regionType = $('#region-type').val();
+            const region = $('#region').val();
+            const parameter = $('#treemap-parameter').val();
+            const colorBy = $('#color-by').val();
+            const limit = $('#vocation-limit').val();
+            
+            // Filter data
+            let filteredData = allData.filter(d => {
+                if (year !== 'all' && d.year && d.year.toString() !== year) return false;
+                if (d.Region_Type !== regionType) return false;
+                if (d.Region !== region) return false;
+                return true;
+            });
+            
+            // Apply vocations limit
+            if (limit === 'top50') {
+                // For compensation treemap, sort by total compensation (GDP) or employment
+                const sortBy = parameter === 'gdp' ? 'GDP' : 'TOT_EMP';
+                filteredData = filteredData.sort((a, b) => b[sortBy] - a[sortBy]).slice(0, 50);
+            }
+            
+            // Group by major occupational groups for treemap hierarchy
+            const groupedData = {};
+            filteredData.forEach(item => {
+                const group = item.SOC_Major_Group_Name || 'Other';
+                if (!groupedData[group]) {
+                    groupedData[group] = [];
+                }
+                groupedData[group].push(item);
+            });
+            
+            // Prepare treemap data
+            const ids = ['All Jobs'];
+            const labels = ['All Jobs'];
+            const parents = [''];
+            const values = [];
+            const colors = [];
+            let totalValue = 0;
+            
+            // Add groups and calculate totals
+            Object.keys(groupedData).forEach(group => {
+                ids.push(group);
+                labels.push(group);
+                parents.push('All Jobs');
+                
+                let groupValue = 0;
+                let groupColorSum = 0;
+                
+                groupedData[group].forEach(item => {
+                    const itemValue = parameter === 'gdp' ? item.GDP : item.TOT_EMP;
+                    groupValue += itemValue;
+                    groupColorSum += item[colorBy] || 0;
+                });
+                
+                values.push(groupValue);
+                colors.push(groupColorSum / groupedData[group].length);
+                totalValue += groupValue;
+                
+                // Add individual occupations
+                groupedData[group].forEach(item => {
+                    ids.push(item.SOC_Code);
+                    labels.push(item.OCC_TITLE);
+                    parents.push(group);
+                    
+                    const itemValue = parameter === 'gdp' ? item.GDP : item.TOT_EMP;
+                    values.push(itemValue);
+                    colors.push(item[colorBy] || 0);
+                });
+            });
+            
+            // Add total value
+            values.unshift(totalValue);
+            colors.unshift(colors.reduce((a, b) => a + b, 0) / colors.length);
+            
+            currentFilteredData = filteredData;
+            
+            // Create treemap
+            const data = [{
+                type: "treemap",
+                ids: ids,
+                labels: labels,
+                parents: parents,
+                values: values,
+                branchvalues: "total",
+                marker: {
+                    colors: colors,
+                    colorscale: "RdBu",
+                    cmid: colors.reduce((a, b) => a + b, 0) / colors.length,
+                    colorbar: {
+                        title: getColorBarTitle(colorBy),
+                        thickness: 20,
+                        len: 0.7
+                    }
+                },
+                hovertemplate: '<b>%{label}</b><br>' + 
+                              (parameter === 'gdp' ? 'Total Compensation: $%{value:,.0f}' : 'Employment: %{value:,.0f}') + 
+                              '<br>' + getColorBarTitle(colorBy) + ': %{color:.2f}<extra></extra>',
+                texttemplate: '%{label}'
+            }];
+
+            const layout = {
+                title: `Interactive Job Price/Compensation Treemap - ${year} ${regionType}: ${region}`,
+                margin: {t:80, l:25, r:25, b:25},
+                height: 700,
+                font: { size: 12 }
+            };
+
+            Plotly.newPlot('treemap', data, layout);
+        }
+        
+        function getColorBarTitle(colorBy) {
+            switch(colorBy) {
+                case 'TOT_EMP': return 'Employment';
+                case 'A_MEAN': return 'Average Annual Wage ($)';
+                case 'complexity_score': return 'Job Complexity';
+                default: return 'Value';
+            }
+        }
+        
+        function exportCurrentData() {
+            if (!currentFilteredData.length) {
+                alert('No data to export');
+                return;
+            }
+            
+            const year = $('#year-select').val();
+            const regionType = $('#region-type').val();
+            const region = $('#region').val();
+            const parameter = $('#treemap-parameter').val();
+            const limit = $('#vocation-limit').val();
+            
+            // Create CSV content
+            const headers = ['Year', 'Region_Type', 'Region', 'SOC_Code', 'OCC_TITLE', 'SOC_Major_Group_Name', 'TOT_EMP', 'A_MEAN', 'GDP', 'Complexity_Score'];
+            let csvContent = headers.join(',') + '\n';
+            
+            currentFilteredData.forEach(item => {
+                const row = [
+                    item.year,
+                    item.Region_Type,
+                    item.Region,
+                    item.SOC_Code,
+                    `"${item.OCC_TITLE}"`,
+                    `"${item.SOC_Major_Group_Name}"`,
+                    item.TOT_EMP,
+                    item.A_MEAN,
+                    item.GDP,
+                    item.complexity_score
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Download file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `job_compensation_treemap_${year}_${regionType}_${region.replace(/[^a-zA-Z0-9]/g, '_')}_${parameter}_${limit}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

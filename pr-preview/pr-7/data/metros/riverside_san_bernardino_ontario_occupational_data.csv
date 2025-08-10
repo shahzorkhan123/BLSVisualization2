@@ -1,0 +1,11 @@
+occupation_code,occupation_title,employment,mean_annual_wage,complexity_score
+11-0000,Management Occupations,10259,167780,1.0
+13-0000,Business and Financial Operations,11426,119048,0.8400314563372535
+15-0000,Computer and Mathematical,5405,138235,0.9507032857451596
+17-0000,Architecture and Engineering,3065,118560,0.868021487814682
+19-0000,"Life, Physical, and Social Science",1605,100332,0.848220965446519
+21-0000,Community and Social Service,2757,79537,0.758189029410254
+23-0000,Legal Occupations,1384,144636,0.9542033497822754
+25-0000,Educational Instruction,10731,94417,0.8298847222666709
+27-0000,"Arts, Design, Entertainment",1942,86707,0.7932741848741457
+29-0000,Healthcare Practitioners,10288,134805,0.933524279754761

@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simplified Job Space Network</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            height: 800px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 100;
+        }
+        .legend {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 100;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simplified Job Space Network</h1>
+    <p>This visualization shows how different occupations are connected based on skill similarity.</p>
+    
+    <div class="container" id="jobSpace">
+        <div class="controls">
+            <button id="zoomIn">+</button>
+            <button id="zoomOut">-</button>
+            <button id="reset">Reset</button>
+        </div>
+        <div class="legend">
+            <h3>Legend</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #1f77b4;"></div>
+                <div>Management</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ff7f0e;"></div>
+                <div>Healthcare</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #2ca02c;"></div>
+                <div>Technology</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple test data
+        const nodes = [
+            {id: 1, name: "CEO", group: "Management", size: 50},
+            {id: 2, name: "Manager", group: "Management", size: 40},
+            {id: 3, name: "Doctor", group: "Healthcare", size: 45},
+            {id: 4, name: "Nurse", group: "Healthcare", size: 35},
+            {id: 5, name: "Software Developer", group: "Technology", size: 42},
+            {id: 6, name: "Data Scientist", group: "Technology", size: 38}
+        ];
+        
+        const links = [
+            {source: 0, target: 1, value: 1},
+            {source: 2, target: 3, value: 1},
+            {source: 4, target: 5, value: 1},
+            {source: 0, target: 2, value: 0.5},
+            {source: 1, target: 4, value: 0.5},
+            {source: 3, target: 5, value: 0.5}
+        ];
+        
+        // Color scale for groups
+        const colorScale = {
+            "Management": "#1f77b4",
+            "Healthcare": "#ff7f0e",
+            "Technology": "#2ca02c"
+        };
+        
+        // Set up SVG
+        const container = document.getElementById('jobSpace');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        const svg = d3.select('#jobSpace')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+        
+        // Create tooltip
+        const tooltip = d3.select('#jobSpace')
+            .append('div')
+            .attr('class', 'tooltip')
+            .style('opacity', 0);
+        
+        // Create zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 10])
+            .on('zoom', zoomed);
+        
+        svg.call(zoom);
+        
+        // Create a group for all elements that will be zoomed
+        const g = svg.append('g');
+        
+        // Create force simulation
+        const simulation = d3.forceSimulation(nodes)
+            .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+            .force('charge', d3.forceManyBody().strength(-300))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collision', d3.forceCollide().radius(d => d.size + 5));
+        
+        // Draw links
+        const link = g.append('g')
+            .attr('stroke', '#999')
+            .attr('stroke-opacity', 0.6)
+            .selectAll('line')
+            .data(links)
+            .join('line')
+            .attr('stroke-width', d => d.value * 2);
+        
+        // Draw nodes
+        const node = g.append('g')
+            .selectAll('circle')
+            .data(nodes)
+            .join('circle')
+            .attr('r', d => d.size / 3)
+            .attr('fill', d => colorScale[d.group])
+            .attr('stroke', '#fff')
+            .attr('stroke-width', 1.5)
+            .on('mouseover', function(event, d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
+                tooltip.html(`<strong>${d.name}</strong><br>Group: ${d.group}`)
+                    .style('left', (event.pageX - container.offsetLeft + 10) + 'px')
+                    .style('top', (event.pageY - container.offsetTop - 28) + 'px');
+            })
+            .on('mouseout', function() {
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            })
+            .call(drag(simulation));
+        
+        // Add labels
+        const label = g.append('g')
+            .selectAll('text')
+            .data(nodes)
+            .join('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', d => -d.size/3 - 5)
+            .text(d => d.name)
+            .style('font-size', '10px')
+            .style('pointer-events', 'none')
+            .style('text-shadow', '1px 1px 2px white');
+        
+        // Update positions on each tick
+        simulation.on('tick', () => {
+            link
+                .attr('x1', d => d.source.x)
+                .attr('y1', d => d.source.y)
+                .attr('x2', d => d.target.x)
+                .attr('y2', d => d.target.y);
+            
+            node
+                .attr('cx', d => d.x)
+                .attr('cy', d => d.y);
+            
+            label
+                .attr('x', d => d.x)
+                .attr('y', d => d.y);
+        });
+        
+        // Drag behavior
+        function drag(simulation) {
+            function dragstarted(event) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
+            }
+            
+            function dragged(event) {
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
+            }
+            
+            function dragended(event) {
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
+            }
+            
+            return d3.drag()
+                .on('start', dragstarted)
+                .on('drag', dragged)
+                .on('end', dragended);
+        }
+        
+        // Zoom function
+        function zoomed(event) {
+            g.attr('transform', event.transform);
+        }
+        
+        // Set up zoom controls
+        document.getElementById('zoomIn').addEventListener('click', function() {
+            svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+        });
+        
+        document.getElementById('zoomOut').addEventListener('click', function() {
+            svg.transition().duration(300).call(zoom.scaleBy, 0.75);
+        });
+        
+        document.getElementById('reset').addEventListener('click', function() {
+            svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+        });
+    </script>
+</body>
+</html>
