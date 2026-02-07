@@ -42,104 +42,104 @@ window.BLS_DATA = {
             console.log('Using fallback sample data for demo purposes');
             // Fallback to sample data for demo purposes
             this.jobData = [
-        {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 1847900,
-                "A_MEAN": 110140,
-                "GDP": 203525346000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "29-1141",
-                "OCC_TITLE": "Registered Nurses",
-                "SOC_Major_Group_Name": "Healthcare Practitioners",
-                "TOT_EMP": 3175390,
-                "A_MEAN": 80010,
-                "GDP": 254095239900,
-                "complexity_score": 0.72
-        },
-        {
-                "year": 2024,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "25-2021",
-                "OCC_TITLE": "Elementary School Teachers",
-                "SOC_Major_Group_Name": "Education Training and Library",
-                "TOT_EMP": 1424890,
-                "A_MEAN": 60940,
-                "GDP": 86824851600,
-                "complexity_score": 0.68
-        },
-        {
-                "year": 2023,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 1795600,
-                "A_MEAN": 107510,
-                "GDP": 192899356000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2023,
-                "Region_Type": "National",
-                "Region": "United States",
-                "SOC_Code": "29-1141",
-                "OCC_TITLE": "Registered Nurses",
-                "SOC_Major_Group_Name": "Healthcare Practitioners",
-                "TOT_EMP": 3100250,
-                "A_MEAN": 78500,
-                "GDP": 243369625000,
-                "complexity_score": 0.71
-        },
-        {
-                "year": 2024,
-                "Region_Type": "State",
-                "Region": "California",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 425000,
-                "A_MEAN": 145000,
-                "GDP": 61625000000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2024,
-                "Region_Type": "State",
-                "Region": "Texas",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 195000,
-                "A_MEAN": 108000,
-                "GDP": 21060000000,
-                "complexity_score": 0.85
-        },
-        {
-                "year": 2024,
-                "Region_Type": "Metropolitan",
-                "Region": "New York-Newark-Jersey City, NY-NJ-PA",
-                "SOC_Code": "15-1252",
-                "OCC_TITLE": "Software Developers",
-                "SOC_Major_Group_Name": "Computer and Mathematical",
-                "TOT_EMP": 156000,
-                "A_MEAN": 135000,
-                "GDP": 21060000000,
-                "complexity_score": 0.85
-        }];
-    },
-    
+            {
+                    "year": 2024,
+                    "Region_Type": "National",
+                    "Region": "United States",
+                    "SOC_Code": "15-1252",
+                    "OCC_TITLE": "Software Developers",
+                    "SOC_Major_Group_Name": "Computer and Mathematical",
+                    "TOT_EMP": 1847900,
+                    "A_MEAN": 110140,
+                    "GDP": 203525346000,
+                    "complexity_score": 0.85
+            },
+            {
+                    "year": 2024,
+                    "Region_Type": "National",
+                    "Region": "United States",
+                    "SOC_Code": "29-1141",
+                    "OCC_TITLE": "Registered Nurses",
+                    "SOC_Major_Group_Name": "Healthcare Practitioners",
+                    "TOT_EMP": 3175390,
+                    "A_MEAN": 80010,
+                    "GDP": 254095239900,
+                    "complexity_score": 0.72
+            },
+            {
+                    "year": 2024,
+                    "Region_Type": "National",
+                    "Region": "United States",
+                    "SOC_Code": "25-2021",
+                    "OCC_TITLE": "Elementary School Teachers",
+                    "SOC_Major_Group_Name": "Education Training and Library",
+                    "TOT_EMP": 1424890,
+                    "A_MEAN": 60940,
+                    "GDP": 86824851600,
+                    "complexity_score": 0.68
+            },
+            {
+                    "year": 2023,
+                    "Region_Type": "National",
+                    "Region": "United States",
+                    "SOC_Code": "15-1252",
+                    "OCC_TITLE": "Software Developers",
+                    "SOC_Major_Group_Name": "Computer and Mathematical",
+                    "TOT_EMP": 1795600,
+                    "A_MEAN": 107510,
+                    "GDP": 192899356000,
+                    "complexity_score": 0.85
+            },
+            {
+                    "year": 2023,
+                    "Region_Type": "National",
+                    "Region": "United States",
+                    "SOC_Code": "29-1141",
+                    "OCC_TITLE": "Registered Nurses",
+                    "SOC_Major_Group_Name": "Healthcare Practitioners",
+                    "TOT_EMP": 3100250,
+                    "A_MEAN": 78500,
+                    "GDP": 243369625000,
+                    "complexity_score": 0.71
+            },
+            {
+                    "year": 2024,
+                    "Region_Type": "State",
+                    "Region": "California",
+                    "SOC_Code": "15-1252",
+                    "OCC_TITLE": "Software Developers",
+                    "SOC_Major_Group_Name": "Computer and Mathematical",
+                    "TOT_EMP": 425000,
+                    "A_MEAN": 145000,
+                    "GDP": 61625000000,
+                    "complexity_score": 0.85
+            },
+            {
+                    "year": 2024,
+                    "Region_Type": "State",
+                    "Region": "Texas",
+                    "SOC_Code": "15-1252",
+                    "OCC_TITLE": "Software Developers",
+                    "SOC_Major_Group_Name": "Computer and Mathematical",
+                    "TOT_EMP": 195000,
+                    "A_MEAN": 108000,
+                    "GDP": 21060000000,
+                    "complexity_score": 0.85
+            },
+            {
+                    "year": 2024,
+                    "Region_Type": "Metropolitan",
+                    "Region": "New York-Newark-Jersey City, NY-NJ-PA",
+                    "SOC_Code": "15-1252",
+                    "OCC_TITLE": "Software Developers",
+                    "SOC_Major_Group_Name": "Computer and Mathematical",
+                    "TOT_EMP": 156000,
+                    "A_MEAN": 135000,
+                    "GDP": 21060000000,
+                    "complexity_score": 0.85
+            }];
+        }
+    },    
     // Parse CSV text into array of objects
     parseCSV(csvText) {
         const lines = csvText.trim().split('\n');
