@@ -200,3 +200,43 @@ All visualizations work identically in local development and on GitHub Pages due
 - `theory_validation.md`: Validation of theoretical models
 - `updated_research_document.md`: Comprehensive research documentation
 - `harvard_atlas_visualization_analysis.md`: Analysis of Harvard Atlas visualizations
+
+## Token Optimization & Memory Bank
+
+**Important**: To optimize token usage across conversations:
+
+1. **Read `memory-bank/` files** at the start of each task — only load files relevant to the current work
+2. **Never rely on chat history** for project context — always load from memory-bank
+3. **Keep memory-bank files updated** after completing work — update active_context.md, tasks_context.md, etc.
+4. **Keep responses short** unless detail is requested
+5. **If information is missing**, ask which memory-bank file to update rather than storing in chat
+
+### Memory Bank Files
+- `active_context.md` — Current work focus and next steps
+- `plan_context.md` — Phase tracking and plan status
+- `tasks_context.md` — Active/blocked/completed tasks
+- `project_overview.md` — Project description and tech stack
+- `requirements.md` — User requirements and constraints
+- `architecture.md` — Technical architecture and data flow
+- `design_decisions.md` — Key decisions and rationale
+- `tasks_todo.md` — Remaining work items
+
+## Data Pipeline
+
+### Running the Pipeline
+
+```bash
+# Full pipeline (import CSVs + export JSONP)
+python scripts/pipeline/run_pipeline.py --year 2024 --fresh
+
+# Import only (rebuild SQLite DB)
+python scripts/pipeline/run_pipeline.py --import-only --fresh
+
+# Export only (from existing DB)
+python scripts/pipeline/run_pipeline.py --export-only
+```
+
+### Pipeline Architecture
+- Source CSVs → SQLite (`data/bls.db`) → Intermediate CSVs (`data/export/`) → JSONP (`data/job_data.js`)
+- Multi-country extensible (US first, config in `scripts/pipeline/config.py`)
+- Complexity placeholder: min-max normalized GDP per region

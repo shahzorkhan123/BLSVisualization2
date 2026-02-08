@@ -45,6 +45,10 @@ package-lock.json
 *.parquet
 large_data/
 
+# Pipeline artifacts
+data/*.db
+data/export/
+
 # Backup files
 *.bak
 *.backup
