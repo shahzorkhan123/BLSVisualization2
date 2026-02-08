@@ -6,7 +6,11 @@
       "Bash(git -C \"D:\\\\Projects\\\\bls2\" log --oneline --all -- \"visualizations/*.html\")",
       "Bash(grep:*)",
       "Bash(cat:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(claude mcp add fetch -s project -- npx -y @modelcontextprotocol/server-fetch)",
+      "Bash(claude mcp add:*)",
+      "Bash(cd:*)"
     ]
   }
 }
