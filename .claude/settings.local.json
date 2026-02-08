@@ -13,7 +13,10 @@
       "Bash(cd:*)",
       "Bash(while read:*)",
       "Bash(done)",
-      "Bash(du:*)"
+      "Bash(du:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m playwright install:*)"
     ]
   }
 }
