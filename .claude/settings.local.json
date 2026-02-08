@@ -10,7 +10,10 @@
       "Bash(find:*)",
       "Bash(claude mcp add fetch -s project -- npx -y @modelcontextprotocol/server-fetch)",
       "Bash(claude mcp add:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(while read:*)",
+      "Bash(done)",
+      "Bash(du:*)"
     ]
   }
 }
