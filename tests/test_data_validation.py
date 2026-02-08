@@ -17,7 +17,7 @@ REQUIRED_FIELDS = [
     "complexity_score",
 ]
 
-VALID_REGION_TYPES = {"National", "State", "Metropolitan"}
+VALID_REGION_TYPES = {"National", "State", "Metro"}
 
 
 @pytest.mark.data

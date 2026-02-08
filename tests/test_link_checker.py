@@ -52,6 +52,15 @@ class TestDataFiles:
         f = project_root / "data" / "job_data.js"
         assert f.stat().st_size > 100, "job_data.js is too small"
 
+    def test_meta_js_exists(self, project_root):
+        assert (project_root / "data" / "meta.js").exists()
+
+    def test_regions_directory_not_empty(self, project_root):
+        regions_dir = project_root / "data" / "regions"
+        assert regions_dir.exists(), "data/regions/ directory missing"
+        files = list(regions_dir.glob("*.data.js"))
+        assert len(files) > 0, "data/regions/ has no .data.js files"
+
 
 @pytest.mark.links
 class TestHtmlDependencies:

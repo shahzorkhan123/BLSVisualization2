@@ -138,6 +138,11 @@
                     <option value="all">All Vocations</option>
                 </select>
             </div>
+
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button id="load-data-btn" style="width:100%;padding:8px;background-color:#007bff;color:white;border:none;border-radius:4px;cursor:pointer;">Load Data</button>
+            </div>
         </div>
         
         <div id="treemap"></div>
@@ -151,80 +156,96 @@
 
     <script src="../shared/utils.js"></script>
     <script src="../shared/treemap.js"></script>
-    <script src="../data/job_data.js"></script>
+    <script src="../data/meta.js"></script>
     <script>
-        // Load the data from shared data source
-        let allData = [];
-        let currentFilteredData = [];
-        const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"];
-        const metros = ["New York-Newark-Jersey City, NY-NJ-PA", "Los Angeles-Long Beach-Anaheim, CA", "Chicago-Naperville-Elgin, IL-IN-WI", "Dallas-Fort Worth-Arlington, TX", "Houston-The Woodlands-Sugar Land, TX", "Washington-Arlington-Alexandria, DC-VA-MD-WV", "Miami-Fort Lauderdale-West Palm Beach, FL", "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD", "Atlanta-Sandy Springs-Roswell, GA", "Boston-Cambridge-Newton, MA-NH", "San Francisco-Oakland-Hayward, CA", "Phoenix-Mesa-Scottsdale, AZ", "Riverside-San Bernardino-Ontario, CA", "Detroit-Warren-Dearborn, MI", "Seattle-Tacoma-Bellevue, WA"];
-        
-        // Initialize the visualization
-        $(document).ready(async function() {
-            try {
-                // Load data from CSV via shared data loader
-                allData = await getBLSData();
-                updateRegionDropdown();
-                updateTreemap();
-            } catch (error) {
-                console.error('Failed to load data:', error);
-                // Display error message to user
-                $('#treemap').html('<div style="padding: 20px; text-align: center; color: #666;">Failed to load data. Please refresh the page.</div>');
-            }
-            
-            // Event listeners for all controls
-            $('#year-select').change(updateTreemap);
-            $('#region-type').change(updateRegionDropdown);
-            $('#region').change(updateTreemap);
-            $('#treemap-parameter').change(updateTreemap);
-            $('#color-by').change(updateTreemap);
-            $('#vocation-limit').change(updateTreemap);
-        });
-        
-        function updateRegionDropdown() {
-            const regionType = $('#region-type').val();
-            const regionDropdown = $('#region');
+        var allData = [];
+        var currentFilteredData = [];
 
+        $(document).ready(function() {
+            var meta = window.BLS_META;
+            if (!meta) {
+                $('#treemap').html('<div style="padding: 20px; text-align: center; color: #666;">Failed to load metadata. Please refresh the page.</div>');
+                return;
+            }
+
+            // Populate year dropdown from metadata
+            var yearSelect = $('#year-select');
+            yearSelect.empty();
+            for (var i = 0; i < meta.years.length; i++) {
+                yearSelect.append('<option value="' + meta.years[i] + '">' + meta.years[i] + '</option>');
+            }
+
+            updateRegionDropdown();
+            showPlaceholder();
+
+            $('#region-type').change(function() {
+                updateRegionDropdown();
+                showPlaceholder();
+            });
+            $('#year-select').change(function() { showPlaceholder(); });
+            $('#region').change(function() { showPlaceholder(); });
+            $('#treemap-parameter').change(function() { if (allData.length) updateTreemap(); });
+            $('#color-by').change(function() { if (allData.length) updateTreemap(); });
+            $('#vocation-limit').change(function() { if (allData.length) updateTreemap(); });
+            $('#load-data-btn').click(loadAndRender);
+        });
+
+        function showPlaceholder() {
+            allData = [];
+            $('#treemap').html('<div style="padding: 40px; text-align: center; color: #888; font-size: 1.2em;">Select a region and click <b>Load Data</b></div>');
+        }
+
+        function loadAndRender() {
+            var regionType = $('#region-type').val();
+            var regionName = $('#region').val();
+            var year = parseInt($('#year-select').val(), 10);
+
+            var entry = findManifestEntry(regionType, regionName);
+            if (!entry) {
+                $('#treemap').html('<div style="padding: 20px; text-align: center; color: #c00;">Region not found in manifest.</div>');
+                return;
+            }
+
+            $('#treemap').html('<div style="padding: 40px; text-align: center; color: #888;">Loading...</div>');
+
+            loadRegionData(entry.slug, year, entry.country, function(data) {
+                allData = data;
+                if (!data.length) {
+                    $('#treemap').html('<div style="padding: 20px; text-align: center; color: #c00;">No data available for this region.</div>');
+                    return;
+                }
+                updateTreemap();
+            });
+        }
+
+        function updateRegionDropdown() {
+            var regionType = $('#region-type').val();
+            var regionDropdown = $('#region');
             regionDropdown.empty();
 
-            // Use metadata from data file if available, otherwise use hardcoded lists
-            const meta = window.BLS_DATA && window.BLS_DATA.metadata;
-            let regionList = [];
+            var meta = window.BLS_META;
+            var entries = (meta && meta.regions && meta.regions[regionType]) || [];
 
-            if (regionType === 'National') {
-                regionList = (meta && meta.regions && meta.regions.National) || ['United States'];
-            } else if (regionType === 'State') {
-                regionList = (meta && meta.regions && meta.regions.State) || states;
-            } else if (regionType === 'Metro') {
-                regionList = (meta && meta.regions && meta.regions.Metro) || metros;
-            }
-
-            regionList.forEach(name => {
-                const escaped = name.replace(/"/g, '&quot;');
+            for (var i = 0; i < entries.length; i++) {
+                var name = entries[i][1];
+                var escaped = name.replace(/"/g, '&quot;');
                 regionDropdown.append('<option value="' + escaped + '">' + name + '</option>');
-            });
-
-            updateTreemap();
+            }
         }
-        
+
         function updateTreemap() {
-            if (!allData) return;
-            
-            const year = $('#year-select').val();
-            const regionType = $('#region-type').val();
-            const region = $('#region').val();
-            const parameter = $('#treemap-parameter').val();
-            const colorBy = $('#color-by').val();
-            const limit = $('#vocation-limit').val();
-            
-            // Filter data
-            let filteredData = allData.filter(d => {
-                if (year !== 'all' && d.year && d.year.toString() !== year) return false;
-                if (d.Region_Type !== regionType) return false;
-                if (d.Region !== region) return false;
-                return true;
-            });
-            
+            if (!allData || !allData.length) return;
+
+            var year = $('#year-select').val();
+            var regionType = $('#region-type').val();
+            var region = $('#region').val();
+            var parameter = $('#treemap-parameter').val();
+            var colorBy = $('#color-by').val();
+            var limit = $('#vocation-limit').val();
+
+            // Data is already filtered to one region by loadRegionData
+            var filteredData = allData.slice();
+
             // Apply vocations limit
             if (limit === 'top50') {
                 // For compensation treemap, sort by total compensation (GDP) or employment

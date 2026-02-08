@@ -21,7 +21,8 @@
       "Bash(python:*)",
       "Bash(for f in D:/Projects/bls2/data/states/*.csv)",
       "Bash(do wc -l \"$f\")",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(dir:*)"
     ]
   }
 }

@@ -148,6 +148,83 @@ const ColorSchemes = {
     }
 };
 
+// --- Lazy-loading support for split data files ---
+
+var BLS_REGION_CACHE = {};
+
+function loadRegionData(slug, year, country, callback) {
+    var key = year + '.' + slug + '.' + country;
+    if (BLS_REGION_CACHE[key]) {
+        callback(BLS_REGION_CACHE[key]);
+        return;
+    }
+
+    window.BLS_LOAD = function(rows) {
+        var expanded = expandCompactRows(rows, slug, year);
+        BLS_REGION_CACHE[key] = expanded;
+        callback(expanded);
+    };
+
+    var script = document.createElement('script');
+    script.src = '../data/regions/' + key + '.data.js';
+    script.onerror = function() { callback([]); };
+    document.head.appendChild(script);
+}
+
+function expandCompactRows(rows, slug, year) {
+    var meta = window.BLS_META;
+    if (!meta) return [];
+
+    // Find region type and display name from slug
+    var regionType = '';
+    var regionName = '';
+    var types = ['National', 'State', 'Metro'];
+    for (var t = 0; t < types.length; t++) {
+        var entries = meta.regions[types[t]] || [];
+        for (var e = 0; e < entries.length; e++) {
+            if (entries[e][0] === slug) {
+                regionType = types[t];
+                regionName = entries[e][1];
+                break;
+            }
+        }
+        if (regionType) break;
+    }
+
+    var result = [];
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var occIdx = row[0];
+        var occ = meta.occ[occIdx];
+        result.push({
+            year: year,
+            Region_Type: regionType,
+            Region: regionName,
+            SOC_Code: occ[0],
+            OCC_TITLE: occ[1],
+            SOC_Major_Group: occ[2],
+            SOC_Major_Group_Name: occ[3],
+            TOT_EMP: row[1],
+            A_MEAN: row[2],
+            GDP: row[3],
+            complexity_score: row[4]
+        });
+    }
+    return result;
+}
+
+function findManifestEntry(regionType, regionName) {
+    var meta = window.BLS_META;
+    if (!meta || !meta.regions || !meta.regions[regionType]) return null;
+    var entries = meta.regions[regionType];
+    for (var i = 0; i < entries.length; i++) {
+        if (entries[i][1] === regionName) {
+            return { slug: entries[i][0], name: entries[i][1], country: entries[i][2] };
+        }
+    }
+    return null;
+}
+
 // Debounce function for performance
 function debounce(func, wait) {
     let timeout;

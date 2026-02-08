@@ -10,19 +10,20 @@ BASELINES_DIR = Path(__file__).parent / "baselines"
 class TestVisualizationsRender:
     """Test that all active visualizations render without errors."""
 
-    @pytest.mark.xfail(reason="Treemap needs full dataset to render; only 10 records currently")
     def test_job_treemap_renders(self, page, local_server):
         page.goto(f"{local_server}/visualizations/direct_html_job_treemap.html")
         page.wait_for_load_state("networkidle")
+        # Lazy loading: click Load Data to fetch region data
+        page.click("#load-data-btn")
         # Plotly renders into #treemap div, adding .js-plotly-plot or svg inside
         page.wait_for_selector("#treemap svg, #treemap .js-plotly-plot", timeout=30000)
 
-    @pytest.mark.xfail(reason="Treemap needs full dataset to render; only 10 records currently")
     def test_compensation_treemap_renders(self, page, local_server):
         page.goto(
             f"{local_server}/visualizations/direct_html_compensation_treemap.html"
         )
         page.wait_for_load_state("networkidle")
+        page.click("#load-data-btn")
         page.wait_for_selector("#treemap svg, #treemap .js-plotly-plot", timeout=30000)
 
     def test_job_space_renders(self, page, local_server):
@@ -70,6 +71,7 @@ class TestVisualBaselines:
     def test_job_treemap_screenshot(self, page, local_server):
         page.goto(f"{local_server}/visualizations/direct_html_job_treemap.html")
         page.wait_for_load_state("networkidle")
+        page.click("#load-data-btn")
         page.wait_for_timeout(3000)  # Wait for Plotly animation
 
         baseline = self._screenshot_path("job_treemap")
@@ -88,6 +90,7 @@ class TestVisualBaselines:
             f"{local_server}/visualizations/direct_html_compensation_treemap.html"
         )
         page.wait_for_load_state("networkidle")
+        page.click("#load-data-btn")
         page.wait_for_timeout(3000)
 
         baseline = self._screenshot_path("compensation_treemap")
