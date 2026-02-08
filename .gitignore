@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE (keep .vscode/ tracked for shared settings)
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Testing artifacts (when Phase 2 is implemented)
+tests/baselines/*.png
+tests/__pycache__/
+.pytest_cache/
+htmlcov/
+.coverage
+*.html
+
+# Node modules (for future Playwright testing)
+node_modules/
+package-lock.json
+
+# Large data files
+*.parquet
+large_data/
+
+# Pipeline artifacts
+data/*.db
+data/export/
+
+# Backup files
+*.bak
+*.backup
+
+# Claude Code
+.claude/
