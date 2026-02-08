@@ -184,30 +184,26 @@
         function updateRegionDropdown() {
             const regionType = $('#region-type').val();
             const regionDropdown = $('#region');
-            
+
             regionDropdown.empty();
-            
+
+            // Use metadata from data file if available, otherwise use hardcoded lists
+            const meta = window.BLS_DATA && window.BLS_DATA.metadata;
+            let regionList = [];
+
             if (regionType === 'National') {
-                regionDropdown.append($('<option>', {
-                    value: 'United States',
-                    text: 'United States'
-                }));
+                regionList = (meta && meta.regions && meta.regions.National) || ['United States'];
             } else if (regionType === 'State') {
-                states.forEach(state => {
-                    regionDropdown.append($('<option>', {
-                        value: state,
-                        text: state
-                    }));
-                });
+                regionList = (meta && meta.regions && meta.regions.State) || states;
             } else if (regionType === 'Metro') {
-                metros.forEach(metro => {
-                    regionDropdown.append($('<option>', {
-                        value: metro,
-                        text: metro
-                    }));
-                });
+                regionList = (meta && meta.regions && meta.regions.Metro) || metros;
             }
-            
+
+            regionList.forEach(name => {
+                const escaped = name.replace(/"/g, '&quot;');
+                regionDropdown.append('<option value="' + escaped + '">' + name + '</option>');
+            });
+
             updateTreemap();
         }
         
